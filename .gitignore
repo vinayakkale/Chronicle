@@ -1,0 +1,8 @@
+# OS-specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temp/logs
+.system_generated/
+*.log

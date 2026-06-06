@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chronicle | Premium Digital Newspaper</title>
+  <!-- Google Fonts: Playfair Display (Headers/Masthead) & Inter (UI/Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Configuration to map Custom HSL variables -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))'
+            },
+            primary: {
+              DEFAULT: 'hsl(var(--primary))',
+              foreground: 'hsl(var(--primary-foreground))'
+            },
+            secondary: {
+              DEFAULT: 'hsl(var(--secondary))',
+              foreground: 'hsl(var(--secondary-foreground))'
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))'
+            },
+            border: 'hsl(var(--border))',
+            accent: {
+              DEFAULT: 'hsl(var(--accent))',
+              foreground: 'hsl(var(--accent-foreground))'
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom stylesheet for premium details, variables, skeleton animations -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-background text-foreground font-sans min-h-screen transition-colors duration-300 flex flex-col antialiased">
+
+  <!-- TOP UTILITY BAR -->
+  <div class="border-b border-border bg-muted/30 text-xs py-1.5 px-4 lg:px-8 transition-colors">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <!-- Left: Weather / Location Details -->
+      <div class="flex items-center gap-4 text-muted-foreground">
+        <span class="flex items-center gap-1">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+          <span>Mumbai, IN</span>
+        </span>
+        <span class="flex items-center gap-1">
+          <i data-lucide="cloud-sun" class="w-3.5 h-3.5 text-accent"></i>
+          <span>Temp: 29°C • Sunny</span>
+        </span>
+      </div>
+
+      <!-- Right: Social Links, Date, Theme Switcher -->
+      <div class="flex items-center gap-4">
+        <span class="font-medium text-muted-foreground hidden sm:inline" id="masthead-date">Saturday, June 6, 2026</span>
+        <div class="h-3 w-px bg-border hidden sm:block"></div>
+        <button id="theme-toggle" class="flex items-center gap-1.5 px-2 py-0.5 rounded border border-border hover:bg-muted transition text-foreground" aria-label="Toggle Light/Dark Theme">
+          <i data-lucide="sun" class="w-3.5 h-3.5 block dark:hidden"></i>
+          <i data-lucide="moon" class="w-3.5 h-3.5 hidden dark:block"></i>
+          <span class="text-[11px] font-medium uppercase tracking-wider hidden xs:inline" id="theme-text">Light Mode</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASTHEAD BRANDING -->
+  <header class="py-6 px-4 lg:px-8 border-b border-border bg-background transition-colors">
+    <div class="max-w-7xl mx-auto text-center relative">
+      <!-- Traditional Issue Metadata -->
+      <div class="text-[10px] tracking-[0.2em] font-medium text-muted-foreground uppercase mb-2 flex justify-between items-center max-w-lg mx-auto border-b border-muted/50 pb-1">
+        <span>ESTD. 1875</span>
+        <span class="font-bold text-primary">THE CHRONICLE INDIA</span>
+        <span>VOL. CLI NO. 156</span>
+      </div>
+      
+      <!-- Masthead Logo -->
+      <h1 class="font-serif font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-foreground uppercase cursor-pointer select-none hover:opacity-95 my-1" id="brand-masthead">
+        THE CHRONICLE
+      </h1>
+      <p class="font-serif italic text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto mt-2">
+        "Unbiased Reporting, Analytical Depth, and Premium Editorial Coverage across the Indian Subcontinent"
+      </p>
+
+      <!-- Broad Sheet Double Border Accent -->
+      <div class="mt-5 border-t-4 border-double border-foreground py-1"></div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION & CONTROLS -->
+  <nav class="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border shadow-sm transition-colors py-2 px-4 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
+      
+      <!-- Category Filter Tabs -->
+      <div class="flex items-center gap-1 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar select-none" id="categories-container">
+        <!-- Javascript dynamic rendering of category buttons -->
+      </div>
+      
+      <!-- Search, Bookmarks Toggle, & Refresh Utilities -->
+      <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+        <!-- Search Form -->
+        <div class="relative w-full md:w-64 max-w-md">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </span>
+          <input 
+            type="text" 
+            id="search-input" 
+            aria-label="Search headlines and authors"
+            placeholder="Search headlines, authors..." 
+            class="w-full pl-9 pr-8 py-1.5 rounded border border-border bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder-muted-foreground transition"
+          />
+          <button 
+            id="clear-search-btn" 
+            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-muted-foreground hover:text-foreground hidden"
+            aria-label="Clear search"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Bookmarks View Toggle -->
+        <button 
+          id="bookmarks-toggle-btn" 
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded border border-border bg-card hover:bg-muted text-sm font-medium transition whitespace-nowrap text-foreground"
+          aria-label="View Saved Bookmarks"
+        >
+          <i data-lucide="bookmark" id="bookmark-toggle-icon" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Bookmarks</span>
+          <span id="bookmark-count-badge" class="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+        </button>
+
+        <!-- Refresh Feeds Button -->
+        <button 
+          id="refresh-btn" 
+          class="p-1.5 rounded border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition"
+          title="Force Refresh Feeds"
+          aria-label="Refresh feeds"
+        >
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Mobile Source Drawer Button (Hidden on Desktop) -->
+        <button 
+          id="mobile-sources-btn" 
+          class="lg:hidden p-1.5 rounded border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition"
+          title="Toggle Sources"
+          aria-label="Toggle news sources"
+        >
+          <i data-lucide="sliders" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- MAIN VIEWPORT GRID -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 lg:px-8 py-6 flex flex-col lg:flex-row gap-8">
+    
+    <!-- LEFT & CENTER FEED (3/4 Width) -->
+    <div class="w-full lg:w-3/4 flex flex-col gap-8">
+      
+      <!-- HERO CAROUSEL SECTION -->
+      <section id="hero-carousel-section" class="bg-card border border-border rounded-lg overflow-hidden relative shadow-sm transition-colors duration-300">
+        <!-- Carousel Slides Wrapper -->
+        <div id="carousel-slides" class="relative w-full h-[400px] md:h-[480px]">
+          <!-- Dynanically populated via JS -->
+          <div class="absolute inset-0 flex items-center justify-center p-8 bg-muted/20">
+            <span class="loading-spinner"></span>
+          </div>
+        </div>
+        
+        <!-- Navigation Controls -->
+        <button id="carousel-prev" class="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background border border-border text-foreground hover:scale-105 p-2 rounded-full shadow transition-all z-10" aria-label="Previous Slide">
+          <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        </button>
+        <button id="carousel-next" class="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background border border-border text-foreground hover:scale-105 p-2 rounded-full shadow transition-all z-10" aria-label="Next Slide">
+          <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Slide Indicators -->
+        <div id="carousel-indicators" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- SEARCH RESULTS HEADER / BOOKMARKS FEEDBACK -->
+      <div id="filter-feedback-bar" class="hidden flex justify-between items-center border-l-4 border-primary bg-muted/40 p-4 rounded transition">
+        <div class="text-sm font-medium">
+          <span id="filter-feedback-text" class="text-foreground">Showing search results for "..."</span>
+          <span id="filter-feedback-count" class="text-muted-foreground ml-1"></span>
+        </div>
+        <button id="reset-filters-btn" class="text-xs text-primary font-bold hover:underline tracking-wider uppercase">
+          Show All Stories
+        </button>
+      </div>
+
+      <!-- EDITORIAL TITLE BAR -->
+      <div class="flex items-center gap-4">
+        <h2 id="section-headline-title" class="font-serif font-black text-xl tracking-wider text-foreground uppercase whitespace-nowrap">
+          Latest Stories
+        </h2>
+        <div class="h-[2px] bg-foreground w-full dark:bg-border"></div>
+      </div>
+
+      <!-- SKELETON LOADER FEED -->
+      <div id="skeleton-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <!-- 6 Skeleton Cards -->
+        <div class="skeleton-card border border-border rounded p-4 flex flex-col gap-3">
+          <div class="skeleton-image h-48 w-full rounded bg-muted"></div>
+          <div class="h-4 w-1/4 rounded bg-muted mt-2"></div>
+          <div class="h-6 w-full rounded bg-muted"></div>
+          <div class="h-4 w-5/6 rounded bg-muted"></div>
+          <div class="h-3 w-1/2 rounded bg-muted mt-4"></div>
+        </div>
+        <div class="skeleton-card border border-border rounded p-4 flex flex-col gap-3">
+          <div class="skeleton-image h-48 w-full rounded bg-muted"></div>
+          <div class="h-4 w-1/4 rounded bg-muted mt-2"></div>
+          <div class="h-6 w-full rounded bg-muted"></div>
+          <div class="h-4 w-5/6 rounded bg-muted"></div>
+          <div class="h-3 w-1/2 rounded bg-muted mt-4"></div>
+        </div>
+        <div class="skeleton-card border border-border rounded p-4 flex flex-col gap-3">
+          <div class="skeleton-image h-48 w-full rounded bg-muted"></div>
+          <div class="h-4 w-1/4 rounded bg-muted mt-2"></div>
+          <div class="h-6 w-full rounded bg-muted"></div>
+          <div class="h-4 w-5/6 rounded bg-muted"></div>
+          <div class="h-3 w-1/2 rounded bg-muted mt-4"></div>
+        </div>
+        <div class="skeleton-card border border-border rounded p-4 flex flex-col gap-3">
+          <div class="skeleton-image h-48 w-full rounded bg-muted"></div>
+          <div class="h-4 w-1/4 rounded bg-muted mt-2"></div>
+          <div class="h-6 w-full rounded bg-muted"></div>
+          <div class="h-4 w-5/6 rounded bg-muted"></div>
+          <div class="h-3 w-1/2 rounded bg-muted mt-4"></div>
+        </div>
+        <div class="skeleton-card border border-border rounded p-4 flex flex-col gap-3">
+          <div class="skeleton-image h-48 w-full rounded bg-muted"></div>
+          <div class="h-4 w-1/4 rounded bg-muted mt-2"></div>
+          <div class="h-6 w-full rounded bg-muted"></div>
+          <div class="h-4 w-5/6 rounded bg-muted"></div>
+          <div class="h-3 w-1/2 rounded bg-muted mt-4"></div>
+        </div>
+        <div class="skeleton-card border border-border rounded p-4 flex flex-col gap-3">
+          <div class="skeleton-image h-48 w-full rounded bg-muted"></div>
+          <div class="h-4 w-1/4 rounded bg-muted mt-2"></div>
+          <div class="h-6 w-full rounded bg-muted"></div>
+          <div class="h-4 w-5/6 rounded bg-muted"></div>
+          <div class="h-3 w-1/2 rounded bg-muted mt-4"></div>
+        </div>
+      </div>
+
+      <!-- LIVE ARTICLES GRID (3 Columns) -->
+      <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 hidden">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- EMPTY FEED STATE -->
+      <div id="empty-state" class="hidden text-center py-16 px-4 border border-dashed border-border rounded-lg bg-card transition-colors">
+        <i data-lucide="newspaper" class="w-12 h-12 text-muted-foreground mx-auto mb-3"></i>
+        <h3 class="text-lg font-bold font-serif mb-1">No Articles Match Your Filters</h3>
+        <p class="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+          Try expanding your search query, enabling more news sources, or selecting a different category.
+        </p>
+        <button id="reset-empty-btn" class="bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider px-4 py-2 rounded shadow hover:bg-primary/95 transition">
+          Reset Filters
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDEBAR: SOURCES & BOOKMARKS (1/4 Width) -->
+    <!-- (Drawer modal configuration on mobile) -->
+    <aside id="sidebar" class="w-full lg:w-1/4 flex flex-col gap-8 hidden lg:flex">
+      
+      <!-- NEWS SOURCES SELECTOR PANEL -->
+      <div class="bg-card border border-border rounded-lg p-5 shadow-sm transition-colors">
+        <div class="flex items-center justify-between border-b border-border pb-3 mb-4">
+          <h3 class="font-serif font-black text-sm tracking-wider uppercase text-foreground">
+            News Sources
+          </h3>
+          <div class="flex items-center gap-3">
+            <button id="source-select-all" class="text-xs text-primary font-semibold hover:underline">Select All</button>
+            <span class="text-muted-foreground text-xs">|</span>
+            <button id="source-clear-all" class="text-xs text-muted-foreground font-semibold hover:underline">Clear</button>
+          </div>
+        </div>
+        
+        <!-- Checklist Options -->
+        <div class="flex flex-col gap-2.5 max-h-80 overflow-y-auto pr-1" id="sources-checkboxes-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- SAVED BOOKMARKS SIDEBAR PREVIEW -->
+      <div class="bg-card border border-border rounded-lg p-5 shadow-sm transition-colors flex-grow flex flex-col min-h-[300px]">
+        <div class="flex items-center justify-between border-b border-border pb-3 mb-4">
+          <h3 class="font-serif font-black text-sm tracking-wider uppercase text-foreground">
+            Saved For Later
+          </h3>
+          <i data-lucide="bookmark" class="w-4 h-4 text-primary"></i>
+        </div>
+
+        <div class="flex-grow overflow-y-auto max-h-[360px] pr-1" id="sidebar-bookmarks-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- MOBILE SOURCES SIDEBAR DRAWER OVERLAY -->
+  <div id="mobile-drawer-overlay" class="fixed inset-0 bg-black/60 z-40 hidden transition-opacity duration-300 pointer-events-none"></div>
+  <div id="mobile-drawer" class="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-card rounded-t-2xl border-t border-border z-50 transform translate-y-full transition-transform duration-300 flex flex-col overflow-hidden">
+    <div class="w-12 h-1 bg-muted rounded-full mx-auto my-3 cursor-pointer" id="mobile-drawer-handle"></div>
+    <div class="flex items-center justify-between border-b border-border px-6 pb-3">
+      <h3 class="font-serif font-black text-base tracking-wider uppercase text-foreground">
+        Select News Sources
+      </h3>
+      <div class="flex items-center gap-3">
+        <button id="mobile-source-select-all" class="text-xs text-primary font-semibold hover:underline">Select All</button>
+        <span class="text-muted-foreground text-xs">|</span>
+        <button id="mobile-source-clear-all" class="text-xs text-muted-foreground font-semibold hover:underline">Clear</button>
+      </div>
+    </div>
+    <div class="flex-grow overflow-y-auto px-6 py-4 flex flex-col gap-3" id="mobile-sources-checkboxes-list">
+      <!-- Shared checklist populated by JS -->
+    </div>
+    <div class="border-t border-border p-4 bg-muted/20">
+      <button id="close-drawer-btn" class="w-full bg-primary text-primary-foreground font-bold uppercase tracking-wider py-2.5 rounded-lg shadow hover:bg-primary/95 transition text-sm">
+        Apply Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- READER MODAL OVERLAY -->
+  <div id="reader-modal" class="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-0 xs:p-4 md:p-6 hidden overflow-hidden">
+    <!-- Modal Container -->
+    <div class="bg-card text-card-foreground border border-border w-full h-full xs:h-auto xs:max-h-[95vh] xs:max-w-4xl xs:rounded-xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform scale-95" id="reader-modal-card">
+      
+      <!-- Reader Header/Toolbar -->
+      <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-muted/20">
+        <button id="modal-close-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border border-border hover:bg-muted transition text-foreground" aria-label="Close article reader">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <span>Back to Feed</span>
+        </button>
+
+        <!-- Text Scale Adjuster Toolbar -->
+        <div class="flex items-center gap-1 sm:gap-2">
+          <span class="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mr-1 hidden sm:inline">Text Size</span>
+          <button id="font-dec-btn" class="w-7 h-7 flex items-center justify-center text-xs border border-border hover:bg-muted rounded font-bold transition text-foreground" title="Decrease font size">A-</button>
+          <button id="font-reset-btn" class="px-2 h-7 flex items-center justify-center text-xs border border-border hover:bg-muted rounded font-medium transition text-foreground" title="Reset font size">Normal</button>
+          <button id="font-inc-btn" class="w-7 h-7 flex items-center justify-center text-xs border border-border hover:bg-muted rounded font-bold transition text-foreground" title="Increase font size">A+</button>
+        </div>
+
+        <!-- Bookmarking Action Inside Reader -->
+        <button id="modal-bookmark-btn" class="flex items-center justify-center p-2 rounded-full border border-border hover:bg-muted transition text-foreground" aria-label="Save Article">
+          <i data-lucide="bookmark" id="modal-bookmark-icon" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Reader Scrollable Content Panel -->
+      <div class="flex-grow overflow-y-auto px-4 sm:px-8 py-6 sm:py-8" id="reader-scrollable-container">
+        <article class="max-w-2xl mx-auto" id="reader-article">
+          <!-- Dynamic reader data rendered here -->
+          <div class="animate-pulse space-y-4">
+            <div class="h-4 w-1/4 bg-muted rounded"></div>
+            <div class="h-10 w-full bg-muted rounded"></div>
+            <div class="h-4 w-1/3 bg-muted rounded"></div>
+            <div class="h-64 w-full bg-muted rounded my-6"></div>
+            <div class="space-y-2">
+              <div class="h-4 w-full bg-muted rounded"></div>
+              <div class="h-4 w-full bg-muted rounded"></div>
+              <div class="h-4 w-5/6 bg-muted rounded"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Reader Footer/Call To Action -->
+      <div class="border-t border-border px-4 sm:px-8 py-3.5 bg-muted/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <span class="text-muted-foreground font-medium">Source: <span id="modal-article-source-name" class="font-bold text-foreground">NDTV</span></span>
+        <a id="modal-article-original-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-3 py-1.5 font-bold uppercase tracking-wider bg-foreground text-background dark:bg-foreground dark:text-background hover:opacity-90 rounded transition">
+          <span>Read Original Feed Link</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-border bg-card mt-auto transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-6">
+      
+      <!-- Publisher / Legal Information -->
+      <div class="text-center md:text-left">
+        <h4 class="font-serif font-black tracking-widest text-sm uppercase mb-1">
+          The Chronicle
+        </h4>
+        <p class="text-xs text-muted-foreground max-w-sm">
+          © 2026 The Chronicle India. All rights reserved. Designed to showcase high-end typography, broadsheet aesthetics, and offline local fallbacks.
+        </p>
+      </div>
+
+      <!-- Live Engine / API Status Trackers -->
+      <div class="flex flex-wrap justify-center md:justify-end gap-3 sm:gap-6 text-[10px] font-bold tracking-wider uppercase">
+        <div class="flex items-center gap-2 border border-border rounded px-3 py-1.5 bg-muted/20">
+          <span class="text-muted-foreground">API Status:</span>
+          <span class="flex items-center gap-1.5" id="footer-api-status">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-foreground">Online</span>
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 border border-border rounded px-3 py-1.5 bg-muted/20">
+          <span class="text-muted-foreground">Fallback Engine:</span>
+          <span class="flex items-center gap-1.5" id="footer-fallback-status">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span class="text-foreground">Standby</span>
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 border border-border rounded px-3 py-1.5 bg-muted/20">
+          <span class="text-muted-foreground">Cached Feed Age:</span>
+          <span class="text-foreground" id="footer-cache-age">Fresh</span>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- LOAD SCRIPTS -->
+  <script src="news-service.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

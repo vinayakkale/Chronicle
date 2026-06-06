@@ -1,0 +1,209 @@
+/* style.css */
+
+/* Define HSL Variables for Light Theme */
+:root {
+  --background: 40 33% 98%;         /* Warm paper/cream background (#fdfbf7) */
+  --foreground: 222 47% 11%;        /* Deep charcoal navy for ultimate readability (#0f172a) */
+  --card: 0 0% 100%;                /* Clean white for elevated card boxes */
+  --card-foreground: 222 47% 11%;
+  --primary: 347 77% 48%;           /* Premium editorial crimson accent (#be123c) */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 10% 90%;          /* Soft grey-cream for minor controls */
+  --secondary-foreground: 222 47% 11%;
+  --muted: 40 12% 95%;              /* Warm light grey for lines/backgrounds */
+  --muted-foreground: 215 18% 40%;   /* Medium gray for author, time labels */
+  --border: 214 32% 91%;            /* Editorial light separator line */
+  --accent: 38 92% 50%;             /* Elegant gold/ochre for featured ribbons */
+  --accent-foreground: 0 0% 100%;
+}
+
+/* Define HSL Variables for Dark Theme */
+.dark {
+  --background: 222 47% 9%;         /* Very deep dark slate ink (#0f172a) */
+  --foreground: 210 40% 98%;        /* Warm off-white for low eye strain (#f8fafc) */
+  --card: 222 47% 12%;              /* Darker slate box (#1e293b) */
+  --card-foreground: 210 40% 98%;
+  --primary: 347 80% 55%;           /* Vibrant crimson accent (#e11d48) */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217 32% 17%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 32% 15%;
+  --muted-foreground: 215 20% 65%;
+  --border: 217 32% 20%;            /* High-contrast dark separator line */
+  --accent: 38 92% 50%;
+  --accent-foreground: 0 0% 100%;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsla(var(--foreground), 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsla(var(--foreground), 0.3);
+}
+
+/* Utility classes */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Premium Typography Adjustments */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Dropcap layout for print broadsheet appearance in Reader Modal */
+.reader-article-content p:first-of-type::first-letter {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  float: left;
+  line-height: 0.85;
+  margin-right: 0.6rem;
+  margin-top: 0.2rem;
+  color: hsl(var(--primary));
+  text-transform: uppercase;
+}
+
+/* Visual Highlights inside Live Search results */
+mark {
+  background-color: hsla(var(--accent), 0.25);
+  color: hsl(var(--foreground));
+  border-bottom: 2px solid hsl(var(--accent));
+  padding-left: 1px;
+  padding-right: 1px;
+}
+
+.dark mark {
+  background-color: hsla(var(--accent), 0.4);
+  color: hsl(var(--foreground));
+}
+
+/* Editorial Column Separation Borders */
+.editorial-border-r {
+  position: relative;
+}
+@media (min-width: 1024px) {
+  .editorial-border-r::after {
+    content: '';
+    position: absolute;
+    right: -1rem;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: hsl(var(--border));
+  }
+}
+
+/* News Headline Card Hover Lift & Underline animations */
+.news-card-hover {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.news-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+.dark .news-card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.headline-underline-trigger:hover .headline-underline {
+  background-size: 100% 1px;
+}
+.headline-underline {
+  background-image: linear-gradient(to right, hsl(var(--foreground)) 100%, transparent 0);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  transition: background-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Carousel transitions */
+.carousel-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Shimmer Skeletal animations */
+.skeleton-card .skeleton-image,
+.skeleton-card div {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-card .skeleton-image::after,
+.skeleton-card div::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 20%,
+    rgba(255, 255, 255, 0.6) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton-card .skeleton-image::after,
+.dark .skeleton-card div::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Spinner loader */
+.loading-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid hsla(var(--foreground), 0.1);
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Checkbox customizations to blend with crimson theme */
+input[type="checkbox"]:checked {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
