@@ -24,7 +24,7 @@ const SafeStorage = {
   }
 };
 
-const NEWS_SOURCES = [
+const GENERAL_SOURCES = [
   { id: 'toi', name: 'Times of India', focus: 'National / General', url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', defaultCategory: 'Politics', homepage: 'https://timesofindia.indiatimes.com' },
   { id: 'ndtv', name: 'NDTV', focus: 'Breaking / Videos', url: 'https://feeds.feedburner.com/ndtvnews-top-stories', defaultCategory: 'Politics', homepage: 'https://www.ndtv.com' },
   { id: 'thehindu', name: 'The Hindu', focus: 'National / Policy', url: 'https://www.thehindu.com/news/feeder/default.rss', defaultCategory: 'Politics', homepage: 'https://www.thehindu.com' },
@@ -37,8 +37,21 @@ const NEWS_SOURCES = [
   { id: 'mint', name: 'Mint', focus: 'Business / Tech', url: 'https://www.livemint.com/rss/news', defaultCategory: 'Business', homepage: 'https://www.livemint.com' }
 ];
 
-const CACHE_KEY = 'chronicle_news_cache';
-const CACHE_TIME_KEY = 'chronicle_news_cache_time';
+const AI_SOURCES = [
+  { id: 'wired-ai', name: 'Wired AI', focus: 'AI & Future Tech', url: 'https://www.wired.com/feed/category/artificial-intelligence/latest/rss', defaultCategory: 'Tech', homepage: 'https://www.wired.com/tag/artificial-intelligence/' },
+  { id: 'techcrunch-ai', name: 'TechCrunch AI', focus: 'AI Startups & Funding', url: 'https://techcrunch.com/category/artificial-intelligence/feed/', defaultCategory: 'Tech', homepage: 'https://techcrunch.com/category/artificial-intelligence/' },
+  { id: 'ai-news', name: 'AI News', focus: 'Industry Insights & Policy', url: 'https://artificialintelligence-news.com/feed/', defaultCategory: 'Tech', homepage: 'https://artificialintelligence-news.com' },
+  { id: 'venturebeat-ai', name: 'VentureBeat AI', focus: 'Enterprise AI & Models', url: 'https://venturebeat.com/category/ai/feed/', defaultCategory: 'Business', homepage: 'https://venturebeat.com/category/ai/' },
+  { id: 'mit-ai', name: 'MIT Tech Review AI', focus: 'AI Research & Society', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', defaultCategory: 'Science', homepage: 'https://www.technologyreview.com/topic/artificial-intelligence/' },
+  { id: 'arxiv-ai', name: 'ArXiv AI', focus: 'Academic Papers & ML', url: 'https://rss.arxiv.org/rss/cs.AI', defaultCategory: 'Science', homepage: 'https://arxiv.org/list/cs.AI/recent' },
+  { id: 'infoq-ai', name: 'InfoQ AI', focus: 'AI Development & Eng', url: 'https://feed.infoq.com/ai-ml/news', defaultCategory: 'Tech', homepage: 'https://www.infoq.com/ai-ml/' }
+];
+
+const isAIPage = typeof window !== 'undefined' && window.CHRONICLE_CONFIG && window.CHRONICLE_CONFIG.isAIPage;
+
+const NEWS_SOURCES = isAIPage ? AI_SOURCES : GENERAL_SOURCES;
+const CACHE_KEY = isAIPage ? 'chronicle_ai_cache' : 'chronicle_news_cache';
+const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time' : 'chronicle_news_cache_time';
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 class MockNewsGenerator {
@@ -47,7 +60,7 @@ class MockNewsGenerator {
     this.sources = NEWS_SOURCES;
     
     // Static lists of authors for each source
-    this.authors = {
+    const generalAuthors = {
       'toi': ['TOI News Network', 'Mumbai Bureau', 'Delia D\'Souza', 'Rajesh Kumar'],
       'ndtv': ['NDTV News Desk', 'Sonia Singh', 'Vishnu Som', 'Pramod Sharma'],
       'thehindu': ['Special Correspondent', 'Suhasini Haidar', 'Ramachandra Guha', 'Mahesh Langa'],
@@ -60,8 +73,20 @@ class MockNewsGenerator {
       'mint': ['Mint Editor', 'Niranjan Rajadhyaksha', 'Monika Halan', 'Udayan Bose']
     };
 
+    const aiAuthors = {
+      'wired-ai': ['Kevin Kelly', 'Steven Levy', 'Will Knight', 'Wired Staff'],
+      'techcrunch-ai': ['Devin Coldewey', 'Kyle Wiggers', 'Alex Wilhelm', 'TC Staff'],
+      'ai-news': ['James Lu', 'Ryan Morrison', 'AI News Desk', 'Staff Writer'],
+      'venturebeat-ai': ['Sharon Goldman', 'Carl Franzen', 'VentureBeat Bureau', 'VB Writer'],
+      'mit-ai': ['Melissa Heikkilä', 'Will Douglas Heaven', 'MIT Review Staff', 'Karen Hao'],
+      'arxiv-ai': ['Research Bot', 'cs.AI Feed', 'arXiv Staff', 'ML Crawler'],
+      'infoq-ai': ['Eran Stiller', 'Srini Penchikala', 'InfoQ Staff', 'Dev Reporter']
+    };
+
+    this.authors = isAIPage ? aiAuthors : generalAuthors;
+
     // Headline pools mapped by source and category
-    this.headlinePools = {
+    const generalHeadlinePools = {
       'toi': {
         'Politics': [
           'Municipal Corporation Announces New Infrastructure Plan for Metro Cities',
@@ -383,6 +408,235 @@ class MockNewsGenerator {
         ]
       }
     };
+
+    const aiHeadlinePools = {
+      'wired-ai': {
+        'Politics': [
+          'EU Parliament Formalizes Implementation Guidelines for Landmark AI Act',
+          'Senate Committee Queries Major AI CEOs on Copyright and Training Data',
+          'Global Summit Outlines Safety Accords for Frontier Foundation Models'
+        ],
+        'Business': [
+          'Nvidia Market Cap Vaults to New Records Amid Massive GPU Infrastructure Demand',
+          'Generative AI Startups Raise Record Venture Funding Despite Valuation Skepticism',
+          'AI Software Licensing Model Projects Multi-Billion Enterprise Market Surge'
+        ],
+        'Tech': [
+          'New Open-Source LLM Releases Claim Performance Parity with Proprietary APIs',
+          'Web Framework Releases Complete Native Integration for Local Inference',
+          'Hardware Startups Unveil Specialized Wearables with Built-In Agents'
+        ],
+        'Science': [
+          'Researchers Map Neural Network Activation Paths to Improve Model Interpretability',
+          'AI-Powered Biological Simulation Discovers Target Candidates for Rare Diseases',
+          'New Compute-Efficient Architecture Challenges Transformer Domination'
+        ],
+        'Sports': [
+          'Grandmaster Defeated by New Neural Chess Engine Utilizing Monte Carlo Search',
+          'Wearable AI Sensors Redefine Athletic Bio-tracking and Injury Prevention',
+          'Predictive Machine Learning Models Achieve Record Accuracy in Football Scouting'
+        ],
+        'Opinion': [
+          'The Ethics of Synthetic Data: Are We training Models on Hallucinations?',
+          'Why Open-Source AI is Vital to Democratic Access and Safety',
+          'AGI Timelines: Navigating the Gap Between Hype and Actual Engineering'
+        ]
+      },
+      'techcrunch-ai': {
+        'Politics': [
+          'Copyright Protection Bureau Registers Landmark Claims Against Training Data Scrapers',
+          'State Department Establishes Dedicated Taskforce for Autonomous Agents Policy',
+          'Municipalities Face Public Backlash Over Automated Algorithmic Benefits Allocation'
+        ],
+        'Business': [
+          'OpenAI Revenue Crosses New Thresholds Led by ChatGPT Plus Enterprise Subscriptions',
+          'Robotics Startup Enters Unicorn Territory Following Series B Lead by Nvidia',
+          'Silicon Valley VCs Pivot Capital Allocation Strategies Exclusively to AI Agent Dev'
+        ],
+        'Tech': [
+          'Developer Tooling Startup Launches Unified API for Multi-Agent Orchestration',
+          'New Quantization Algorithms Compress Frontier Models to Run on Smartphones',
+          'Cloud Providers Announce Low-Cost Serverless Instances for AI Inference'
+        ],
+        'Science': [
+          'Deep Learning System Designs Novel Crystalline Structures in Minutes',
+          'Supercomputing Facility Launches Cluster Exclusively Configured for Neural Nets',
+          'Climate Research Center Uses Neural Networks to Model Extreme Weather Patterns'
+        ],
+        'Sports': [
+          'Professional Sports Franchises Adopt Real-Time Machine Learning Strategy Tools',
+          'Camera-Based Tracking System Tracks Player Biometrics to Optimize Performance',
+          'Algorithm-Driven Training Schedules Help Reduce Sports Injuries by Forty Percent'
+        ],
+        'Opinion': [
+          'The Silicon Rush: Why Capital Concentration in AI Could Limit Innovation',
+          'Are We Expecting Too Much? Setting Realistic Milestones for Autonomous Agents',
+          'The Creator Class vs. The Training Set: Seeking a Fair Compensation Model'
+        ]
+      },
+      'ai-news': {
+        'Politics': [
+          'Bipartisan Coalition Proposes Federal AI Safety Standards Bill',
+          'State Regulators Target Algorithmic Pricing Software in Rental Markets',
+          'Global Accord Restricts Lethal Autonomous Weapons Systems Development'
+        ],
+        'Business': [
+          'AI Chip Startups Secure Billions to Challenge Nvidia Dominance',
+          'Enterprise AI Deployment Surges Forty Percent Year-Over-Year',
+          'Publishing Houses Sign Landmark Multi-Million Content Licensing Deals'
+        ],
+        'Tech': [
+          'New Multimodal Models Benchmark Human-Level Coding Performance',
+          'Open-Source Consortium Releases Ultrafast Local Inference Engine',
+          'Database Vector Search Indexing Speeds Up by Tenfold in New Release'
+        ],
+        'Science': [
+          'AI-Designed Enzyme Breaks Down Recyclable Plastics in Hours',
+          'Machine Learning Predicts Quantum Phase Transitions with High Precision',
+          'Deep Neural Networks Map Previously Unknown Brain Circuitry'
+        ],
+        'Sports': [
+          'Sports Leagues Implement AI Refereeing for Precise Out-of-Bounds Rulings',
+          'Machine Learning Predicts Player Fatigue Levels to Prevent Injuries',
+          'Formula 1 Teams Adopt Deep Reinforcement Learning for Race Strategy'
+        ],
+        'Opinion': [
+          'The Risk of Monopoly in Foundation Models: Why Open Access Matters',
+          'Redefining Work: How AI Co-pilots Are Reshaping White-Collar Careers',
+          'The Alignment Problem: Ensuring AI Systems Remain Beneficial to Humanity'
+        ]
+      },
+      'venturebeat-ai': {
+        'Politics': [
+          'Government Adopts AI Code of Conduct for Public Procurement',
+          'Senate Panel Debates National Security Risks of Open-Weights Models',
+          'Regulators Probe AI Search Startup Over Copyright Fair Use Claims'
+        ],
+        'Business': [
+          'Enterprise AI Software Market Poised to Hit $200 Billion by 2028',
+          'Database Startup Valued at $5 Billion Following Series D Funding',
+          'AI Consulting Services Drive Record Revenue for Major Integrators'
+        ],
+        'Tech': [
+          'Frontier Model Provider Releases Real-Time Voice API for Developers',
+          'New Code Assistant Integration Minimizes Bugs in Large Codebases',
+          'Enterprise Agent Platform automates Complex Multi-Step Office Workflows'
+        ],
+        'Science': [
+          'Biomolecular ML Model Predicts Protein Interactions with Unprecedented Speed',
+          'Autonomous Lab Facility Speeds Up Material Discovery by 100x',
+          'AI Analysis of Deep Space Data Reveals 50 New Exoplanets'
+        ],
+        'Sports': [
+          'Athletic Training Program Uses Computer Vision for Posture Correction',
+          'Neural Nets Optimize Aerodynamics for Cycling and Ski Equipment',
+          'Algorithmic Playbook Generation Helps Basketball Coaches Design Strategies'
+        ],
+        'Opinion': [
+          'The Pragmatic AI: Moving Past the AGI Discussion to Solve Real Problems',
+          'Sovereign AI: Why Every Country Needs Independent Computing Infrastructure',
+          'The Trust Deficit: Overcoming Hallucinations in Enterprise Workloads'
+        ]
+      },
+      'mit-ai': {
+        'Politics': [
+          'Policy Research Identifies Algorithmic Bias in Criminal Justice System',
+          'EU Regulators Detail Fines for Violations of AI Act Transparency Clauses',
+          'Federal Trade Commission Investigates Tech Giants Over AI Startup Deals'
+        ],
+        'Business': [
+          'Startup Accelerator Announces Influx of GPU Compute Grants for Founders',
+          'AI Translation Market Expands Rapidly in Emerging Regions',
+          'Hardware Conglomerate Partners with AI Lab for In-House Model Customization'
+        ],
+        'Tech': [
+          'Researchers Unveil Energy-Efficient AI Chip Design Using Photonic Channels',
+          'New Benchmarking Suite Evaluates Commonsense Reasoning in LLMs',
+          'Open-Source Developer Platform Integrates Local Models by Default'
+        ],
+        'Science': [
+          'AI Model Discovers Class of Antibiotics Able to Kill Resistant Bacteria',
+          'Machine Learning System Deciphers Ancient Unreadable Scripts',
+          'Deep Learning Predicts Protein Folding Mechanics in Dynamic Environments'
+        ],
+        'Sports': [
+          'Tennis Analytics Platform Predicts Shot Selections with High Accuracy',
+          'AI Coaching Systems Offer Personalized Feedback to Amateur Athletes',
+          'Predictive Models Help Marathon Runners Optimize Pacing in Real-Time'
+        ],
+        'Opinion': [
+          'The Human Factor: Why AI Systems Require Human-in-the-Loop Oversight',
+          'The Carbon Footprint of AI: Addressing the Energy Costs of Training',
+          'Copyright Law is Ill-Equipped for Generative AI: Time for Reform'
+        ]
+      },
+      'arxiv-ai': {
+        'Politics': [
+          'Study Evaluates Influence of LLM Personas on Political Discourse',
+          'Researchers Propose Watermarking Standards for Synthetic Content',
+          'Framework for Auditing Transparency in Algorithmic Decision Systems'
+        ],
+        'Business': [
+          'Academic Paper Evaluates Economic Impact of Automated Code Assistants',
+          'Economic Analysis Details Productivity Gains in Legal AI Workflows',
+          'Valuation Framework Proposed for Open-Source Foundation Models'
+        ],
+        'Tech': [
+          'Paper Introduces Linear-Time Alternative to Traditional Transformers',
+          'New Optimization Technique Reduces Fine-Tuning Memory Requirements by 80%',
+          'Researchers Release High-Quality Instruction-Tuning Dataset for Math'
+        ],
+        'Science': [
+          'Deep Learning Solver Accelerates Fluid Dynamics Simulations by 1000x',
+          'ML Framework Decodes Brain Activity Into Text Representation',
+          'Physics-Informed Neural Networks Solve Complex Wave Equations'
+        ],
+        'Sports': [
+          'Reinforcement Learning Agents Learn Co-operative Football Team Play',
+          'Deep Reinforcement Learning Trains Bipedal Robots to Navigate Obstacles',
+          'Computer Vision Model Detects Subtle Tennis Serve Mechanics Flaws'
+        ],
+        'Opinion': [
+          'On the Limits of Autoregressive LLMs for Mathematical Reasoning',
+          'The Open-Weights Debate: Balancing Academic Freedom and Misuse Risks',
+          'Evaluating Generalization Capabilities in Advanced Machine Learning Models'
+        ]
+      },
+      'infoq-ai': {
+        'Politics': [
+          'Developers Seek Legal Protections Over Automated Code Suggestions',
+          'Cyber Security Agency Releases Hardening Guidelines for AI Pipelines',
+          'Government IT Department Integrates Open-Source Models for Public Portal'
+        ],
+        'Business': [
+          'Enterprise Software Giants Race to Integrate Copilot Tooling in Core Suites',
+          'IT Leaders Report Significant ROI in Automated Customer Support Pipelines',
+          'Venture Capitalists Outline Infrastructure and App Layer Investment Trends'
+        ],
+        'Tech': [
+          'Popular Web Framework Adds Native Support for Vector Databases',
+          'Leading IDE Launches Deep Context Integration for Better Code Completion',
+          'New Open Source Framework Simplifies Local Multi-Agent Deployment'
+        ],
+        'Science': [
+          'Neural Network Architectures Optimized for Low-Power IoT Devices',
+          'ML Model Analyzes Software Telemetry to Predict Infrastructure Outages',
+          'Scientists Use AI Models to Optimize Quantum Computing Error Correction'
+        ],
+        'Sports': [
+          'AI Analytics Platform Automatically Generates Video Highlights Packages',
+          'Predictive Scouting Engine Indexes Amateur Player Video Feed Data',
+          'Machine Learning Optimizes Formula 1 Tire Wear and Fuel Computations'
+        ],
+        'Opinion': [
+          'The Rise of the AI-Enhanced Developer: How Roles Are Evolving',
+          'Why Prompt Engineering is Evolving Into Multi-Agent Software Architecture',
+          'Navigating Data Security Regulations When Deploying LLMs in Enterprise'
+        ]
+      }
+    };
+
+    this.headlinePools = isAIPage ? aiHeadlinePools : generalHeadlinePools;
 
     // Generic body templates for categories, to build multi-paragraph stories
     this.bodyTemplates = {

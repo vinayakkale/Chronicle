@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Chronicle | Premium Digital Newspaper</title>
+  <title>Club AI Chronicle</title>
   <!-- Google Fonts: Playfair Display (Headers/Masthead) & Inter (UI/Body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,8 +51,19 @@
     }
   </script>
   
+  <!-- Page Configuration Block -->
+  <script>
+    window.CHRONICLE_CONFIG = {
+      isAIPage: true,
+      pageTitle: "Club AI Chronicle",
+      brandMasthead: "Club AI Chronicle",
+      tagline: "Unbiased Reporting, Deep Insights, and Premium Editorial Coverage across the frontiers of Artificial Intelligence",
+      logoSubtitle: "Your daily dose of AI"
+    };
+  </script>
+  
   <!-- Custom stylesheet for premium details, variables, skeleton animations -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../style.css">
   
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -76,9 +87,9 @@
 
       <!-- Right: Social Links, Date, Theme Switcher -->
       <div class="flex items-center gap-4">
-        <a href="AI/" class="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition" id="edition-toggle">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-          <span>AI Edition</span>
+        <a href="../" class="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition" id="edition-toggle">
+          <i data-lucide="newspaper" class="w-3.5 h-3.5"></i>
+          <span>Main Edition</span>
         </a>
         <div class="h-3 w-px bg-border"></div>
         <span class="font-medium text-muted-foreground hidden sm:inline" id="masthead-date">Saturday, June 6, 2026</span>
@@ -98,16 +109,16 @@
       <!-- Traditional Issue Metadata -->
       <div class="text-[10px] tracking-[0.2em] font-medium text-muted-foreground uppercase mb-2 flex justify-between items-center max-w-lg mx-auto border-b border-muted/50 pb-1">
         <span>ESTD. 1875</span>
-        <span class="font-bold text-primary">THE CHRONICLE INDIA</span>
+        <span class="font-bold text-primary">Your daily dose of AI</span>
         <span>VOL. CLI NO. 156</span>
       </div>
       
       <!-- Masthead Logo -->
       <h1 class="font-serif font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-foreground uppercase cursor-pointer select-none hover:opacity-95 my-1" id="brand-masthead">
-        THE CHRONICLE
+        Club AI Chronicle
       </h1>
       <p class="font-serif italic text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto mt-2">
-        "Unbiased Reporting, Analytical Depth, and Premium Editorial Coverage across the Indian Subcontinent"
+        "Unbiased Reporting, Deep Insights, and Premium Editorial Coverage across the frontiers of Artificial Intelligence"
       </p>
 
       <!-- Broad Sheet Double Border Accent -->
@@ -425,7 +436,7 @@
       <!-- Publisher / Legal Information -->
       <div class="text-center md:text-left">
         <h4 class="font-serif font-black tracking-widest text-sm uppercase mb-1">
-          The Chronicle
+          Club AI Chronicle
         </h4>
         <p class="text-xs text-muted-foreground max-w-sm">
           © 2026 The Chronicle India. All rights reserved. Designed to showcase high-end typography, broadsheet aesthetics, and offline local fallbacks.
@@ -460,7 +471,7 @@
   </footer>
 
   <!-- LOAD SCRIPTS -->
-  <script src="news-service.js"></script>
-  <script src="app.js"></script>
+  <script src="../news-service.js"></script>
+  <script src="../app.js"></script>
 </body>
 </html>

@@ -8,6 +8,31 @@
 // SafeStorage is already declared globally in news-service.js and will be reused here.
 
 
+const isAIPage = typeof window !== 'undefined' && window.CHRONICLE_CONFIG && window.CHRONICLE_CONFIG.isAIPage;
+const BOOKMARKS_KEY = isAIPage ? 'chronicle_ai_bookmarks' : 'chronicle_bookmarks';
+const ENABLED_SOURCES_KEY = isAIPage ? 'chronicle_ai_enabled_sources' : 'chronicle_enabled_sources';
+const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time' : 'chronicle_news_cache_time';
+
+function initConfig() {
+  if (typeof window !== 'undefined' && window.CHRONICLE_CONFIG) {
+    const config = window.CHRONICLE_CONFIG;
+    if (config.pageTitle) {
+      document.title = config.pageTitle;
+    }
+    if (config.brandMasthead && DOM.brandMasthead) {
+      DOM.brandMasthead.textContent = config.brandMasthead;
+    }
+    const subTitleEl = document.querySelector('.text-primary.font-bold');
+    if (subTitleEl && config.logoSubtitle) {
+      subTitleEl.textContent = config.logoSubtitle;
+    }
+    const taglineEl = document.querySelector('.font-serif.italic.text-xs');
+    if (taglineEl && config.tagline) {
+      taglineEl.textContent = config.tagline;
+    }
+  }
+}
+
 // Global Application State
 const state = {
   theme: 'light',
@@ -95,6 +120,7 @@ const DOM = {
 
 // Bootstrap the Application
 document.addEventListener('DOMContentLoaded', () => {
+  initConfig();
   initDate();
   initTheme();
   initBookmarks();
@@ -150,7 +176,7 @@ function toggleTheme() {
 // -------------------------------------------------------------
 function initBookmarks() {
   try {
-    const saved = SafeStorage.getItem('chronicle_bookmarks');
+    const saved = SafeStorage.getItem(BOOKMARKS_KEY);
     state.bookmarks = saved ? JSON.parse(saved) : [];
   } catch (e) {
     console.error('Failed to parse bookmarks:', e);
@@ -161,7 +187,7 @@ function initBookmarks() {
 }
 
 function saveBookmarks() {
-  SafeStorage.setItem('chronicle_bookmarks', JSON.stringify(state.bookmarks));
+  SafeStorage.setItem(BOOKMARKS_KEY, JSON.stringify(state.bookmarks));
   updateBookmarkBadges();
   renderSidebarBookmarks();
 }
@@ -240,7 +266,7 @@ function selectCategory(category) {
 // SOURCE SELECTION CHECKBOXES
 // -------------------------------------------------------------
 function initSources() {
-  const savedSources = SafeStorage.getItem('chronicle_enabled_sources');
+  const savedSources = SafeStorage.getItem(ENABLED_SOURCES_KEY);
   if (savedSources) {
     try {
       state.enabledSources = JSON.parse(savedSources);
@@ -256,7 +282,7 @@ function initSources() {
 }
 
 function saveSources() {
-  SafeStorage.setItem('chronicle_enabled_sources', JSON.stringify(state.enabledSources));
+  SafeStorage.setItem(ENABLED_SOURCES_KEY, JSON.stringify(state.enabledSources));
 }
 
 function renderSourcesChecklist() {
@@ -412,7 +438,7 @@ function updateFooterStatus(result) {
   }
   
   // Cache age
-  const cacheTimeStr = SafeStorage.getItem('chronicle_news_cache_time');
+  const cacheTimeStr = SafeStorage.getItem(CACHE_TIME_KEY);
   if (cacheTimeStr) {
     const ageMs = Date.now() - parseInt(cacheTimeStr, 10);
     const ageMins = Math.floor(ageMs / 60000);
