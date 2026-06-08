@@ -38,20 +38,20 @@ const GENERAL_SOURCES = [
 ];
 
 const AI_SOURCES = [
-  { id: 'wired-ai', name: 'Wired AI', focus: 'AI & Future Tech', url: 'https://www.wired.com/feed/category/artificial-intelligence/latest/rss', defaultCategory: 'Agents', homepage: 'https://www.wired.com/tag/artificial-intelligence/' },
+  { id: 'the-decoder', name: 'The Decoder', focus: 'AI Insights & Trends', url: 'https://the-decoder.com/feed/', defaultCategory: 'Agents', homepage: 'https://the-decoder.com' },
   { id: 'techcrunch-ai', name: 'TechCrunch AI', focus: 'AI Startups & Funding', url: 'https://techcrunch.com/category/artificial-intelligence/feed/', defaultCategory: 'Funding', homepage: 'https://techcrunch.com/category/artificial-intelligence/' },
   { id: 'ai-news', name: 'AI News', focus: 'Industry Insights & Policy', url: 'https://artificialintelligence-news.com/feed/', defaultCategory: 'Policy', homepage: 'https://artificialintelligence-news.com' },
   { id: 'venturebeat-ai', name: 'VentureBeat AI', focus: 'Enterprise AI & Models', url: 'https://venturebeat.com/category/ai/feed/', defaultCategory: 'Funding', homepage: 'https://venturebeat.com/category/ai/' },
   { id: 'mit-ai', name: 'MIT Tech Review AI', focus: 'AI Research & Society', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', defaultCategory: 'Research', homepage: 'https://www.technologyreview.com/topic/artificial-intelligence/' },
   { id: 'arxiv-ai', name: 'ArXiv AI', focus: 'Academic Papers & ML', url: 'https://rss.arxiv.org/rss/cs.AI', defaultCategory: 'Research', homepage: 'https://arxiv.org/list/cs.AI/recent' },
-  { id: 'infoq-ai', name: 'InfoQ AI', focus: 'AI Development & Eng', url: 'https://feed.infoq.com/ai-ml/news', defaultCategory: 'Agents', homepage: 'https://www.infoq.com/ai-ml/' }
+  { id: 'marktechpost', name: 'MarkTechPost', focus: 'AI Research & Reports', url: 'https://www.marktechpost.com/feed/', defaultCategory: 'Research', homepage: 'https://www.marktechpost.com' }
 ];
 
 const isAIPage = typeof window !== 'undefined' && window.CHRONICLE_CONFIG && window.CHRONICLE_CONFIG.isAIPage;
 
 const NEWS_SOURCES = isAIPage ? AI_SOURCES : GENERAL_SOURCES;
-const CACHE_KEY = isAIPage ? 'chronicle_ai_cache_v3' : 'chronicle_news_cache_v3';
-const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time_v3' : 'chronicle_news_cache_time_v3';
+const CACHE_KEY = isAIPage ? 'chronicle_ai_cache_v4' : 'chronicle_news_cache_v4';
+const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time_v4' : 'chronicle_news_cache_time_v4';
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 class MockNewsGenerator {
@@ -76,13 +76,13 @@ class MockNewsGenerator {
     };
 
     const aiAuthors = {
-      'wired-ai': ['Kevin Kelly', 'Steven Levy', 'Will Knight', 'Wired Staff'],
+      'the-decoder': ['Max Wilder', 'Janis Elspas', 'Decoder Staff', 'Tech Analyst'],
       'techcrunch-ai': ['Devin Coldewey', 'Kyle Wiggers', 'Alex Wilhelm', 'TC Staff'],
       'ai-news': ['James Lu', 'Ryan Morrison', 'AI News Desk', 'Staff Writer'],
       'venturebeat-ai': ['Sharon Goldman', 'Carl Franzen', 'VentureBeat Bureau', 'VB Writer'],
       'mit-ai': ['Melissa Heikkilä', 'Will Douglas Heaven', 'MIT Review Staff', 'Karen Hao'],
       'arxiv-ai': ['Research Bot', 'cs.AI Feed', 'arXiv Staff', 'ML Crawler'],
-      'infoq-ai': ['Eran Stiller', 'Srini Penchikala', 'InfoQ Staff', 'Dev Reporter']
+      'marktechpost': ['Asif Razzaq', 'Marktechpost Editor', 'MTP Writer', 'AI Analyst']
     };
 
     this.authors = isAIPage ? aiAuthors : generalAuthors;
@@ -412,7 +412,7 @@ class MockNewsGenerator {
     };
 
     const aiHeadlinePools = {
-      'wired-ai': {
+      'the-decoder': {
         'Policy': [
           'EU Parliament Formalizes Implementation Guidelines for Landmark AI Act',
           'Senate Committee Queries Major AI CEOs on Copyright and Training Data',
@@ -604,7 +604,7 @@ class MockNewsGenerator {
           'Evaluating Generalization Capabilities in Advanced Machine Learning Models'
         ]
       },
-      'infoq-ai': {
+      'marktechpost': {
         'Policy': [
           'Developers Seek Legal Protections Over Automated Code Suggestions',
           'Cyber Security Agency Releases Hardening Guidelines for AI Pipelines',
