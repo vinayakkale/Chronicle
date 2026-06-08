@@ -8,10 +8,9 @@
 // SafeStorage is already declared globally in news-service.js and will be reused here.
 
 
-const isAIPage = typeof window !== 'undefined' && window.CHRONICLE_CONFIG && window.CHRONICLE_CONFIG.isAIPage;
+// We reuse the global variables isAIPage and CACHE_TIME_KEY declared in news-service.js.
 const BOOKMARKS_KEY = isAIPage ? 'chronicle_ai_bookmarks' : 'chronicle_bookmarks';
 const ENABLED_SOURCES_KEY = isAIPage ? 'chronicle_ai_enabled_sources' : 'chronicle_enabled_sources';
-const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time' : 'chronicle_news_cache_time';
 
 function initConfig() {
   if (typeof window !== 'undefined' && window.CHRONICLE_CONFIG) {
