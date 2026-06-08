@@ -359,7 +359,9 @@ function initCategories() {
   DOM.categoriesContainer.innerHTML = '';
   CATEGORIES_LIST.forEach(cat => {
     const btn = document.createElement('button');
-    btn.className = `category-tab px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+    const paddingClass = isAIPage ? 'px-2.5 py-1' : 'px-3 py-1.5';
+    const fontClass = isAIPage ? 'text-[9px]' : 'text-xs';
+    btn.className = `category-tab ${paddingClass} rounded-full ${fontClass} font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
       state.selectedCategory === cat 
         ? 'bg-foreground text-background dark:bg-foreground dark:text-background' 
         : 'bg-secondary text-secondary-foreground hover:bg-muted'
@@ -378,13 +380,16 @@ function initCategories() {
 function selectCategory(category) {
   state.selectedCategory = category;
   
+  const paddingClass = isAIPage ? 'px-2.5 py-1' : 'px-3 py-1.5';
+  const fontClass = isAIPage ? 'text-[9px]' : 'text-xs';
+  
   // Update Tab States
   const tabs = DOM.categoriesContainer.querySelectorAll('.category-tab');
   tabs.forEach(tab => {
     if (tab.dataset.category === category) {
-      tab.className = 'category-tab px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-foreground text-background dark:bg-foreground dark:text-background transition-all whitespace-nowrap';
+      tab.className = `category-tab ${paddingClass} rounded-full ${fontClass} font-semibold uppercase tracking-wider bg-foreground text-background dark:bg-foreground dark:text-background transition-all whitespace-nowrap`;
     } else {
-      tab.className = 'category-tab px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-secondary text-secondary-foreground hover:bg-muted transition-all whitespace-nowrap';
+      tab.className = `category-tab ${paddingClass} rounded-full ${fontClass} font-semibold uppercase tracking-wider bg-secondary text-secondary-foreground hover:bg-muted transition-all whitespace-nowrap`;
     }
   });
   
