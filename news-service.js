@@ -50,8 +50,8 @@ const AI_SOURCES = [
 const isAIPage = typeof window !== 'undefined' && window.CHRONICLE_CONFIG && window.CHRONICLE_CONFIG.isAIPage;
 
 const NEWS_SOURCES = isAIPage ? AI_SOURCES : GENERAL_SOURCES;
-const CACHE_KEY = isAIPage ? 'chronicle_ai_cache_v2' : 'chronicle_news_cache_v2';
-const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time_v2' : 'chronicle_news_cache_time_v2';
+const CACHE_KEY = isAIPage ? 'chronicle_ai_cache_v3' : 'chronicle_news_cache_v3';
+const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time_v3' : 'chronicle_news_cache_time_v3';
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 class MockNewsGenerator {

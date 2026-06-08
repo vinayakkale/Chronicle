@@ -1052,6 +1052,28 @@ function renderSidebarBookmarks() {
   lucide.createIcons();
 }
 
+function formatIntoParagraphs(text) {
+  if (!text) return [];
+  // Split by double newlines or single newlines if they are used as paragraph separators
+  let paras = text.split(/\n\s*\n+/).map(p => p.trim()).filter(p => p.length > 0);
+  if (paras.length >= 2) {
+    return paras;
+  }
+  // If we only have 1 block of text, let's split it by sentences and group them to make paragraphs
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text];
+  const groupedParas = [];
+  let currentPara = [];
+  
+  for (let i = 0; i < sentences.length; i++) {
+    currentPara.push(sentences[i].trim());
+    if (currentPara.length === 3 || i === sentences.length - 1) {
+      groupedParas.push(currentPara.join(' '));
+      currentPara = [];
+    }
+  }
+  return groupedParas.length > 0 ? groupedParas : [text];
+}
+
 // -------------------------------------------------------------
 // FULL ARTICLE READER MODAL (WITH ACCESSIBILITY FONT CONTROLLERS)
 // -------------------------------------------------------------
@@ -1090,7 +1112,9 @@ function openArticleReader(articleId) {
   
   // Rich Paragraph generation
   let bodyParagraphs = [];
-  if (article.content && article.content.split('\n\n').length >= 3 && article.content.length > 500) {
+  if (!article.isMock && article.content && article.content.trim().length > 100) {
+    bodyParagraphs = formatIntoParagraphs(article.content);
+  } else if (article.content && article.content.split('\n\n').length >= 3 && article.content.length > 500) {
     bodyParagraphs = article.content.split('\n\n');
   } else {
     // Generate contextually relevant mock paragraph templates for print aesthetic consistency
