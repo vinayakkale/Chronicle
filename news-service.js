@@ -713,6 +713,78 @@ class MockNewsGenerator {
           'Healthy societies rely on spaces where complex issues can be discussed without devolving into polarization. Long-form journalism, community forums, and academic public engagements play a vital role in providing this depth. Encouraging media literacy in educational institutions is critical to building critical thinking.',
           'We must actively seek out diverse perspectives and engage in constructive dialogue. Nuance is not a sign of hesitation; it is the hallmark of a mature society capable of navigating complex moral and political realities.'
         ]
+      ],
+      'Research': [
+        [
+          '{LOCATION} — A team of research scientists today published a milestone paper introducing a novel neural network architecture. The design, which optimizes attention mechanics, demonstrates a significant reduction in computational overhead while maintaining high performance on reasoning benchmarks. Experts are calling it a major step toward local execution of frontier models.',
+          'In peer testing, the model successfully completed complex mathematical proofs and code generation tasks at a fraction of the cost of current APIs. The research consortium plans to open-source the model weights and training datasets to encourage academic replication. Several technology universities have already announced pilot deployments in their research labs.',
+          '"We are addressing the computational bottleneck that has constrained deep learning research for years," the lead author stated. "By creating a compute-efficient framework, we enable independent labs to run advanced models without requiring massive server clusters."'
+        ],
+        [
+          '{LOCATION} — A joint study from leading computational biology labs has unveiled a machine learning model designed to simulate complex molecular bonds. The model maps chemical configurations at unprecedented speeds, accelerating the discovery timeline for potential therapeutic compounds. Initial trials show a high rate of accuracy in predicting protein-drug interactions.',
+          'The research team utilized a massive dataset of validated chemical structures to train the model, implementing specialized hardware acceleration to compress weeks of computation into hours. Pharmaceutical developers are already seeking partnerships to integrate the model into early-stage drug design pipelines. The research has been peer-reviewed and published in a prominent scientific journal.',
+          '"This represents a paradigm shift in how we approach molecular screening," noted a chief bio-informatics researcher. "By leveraging deep learning to filter millions of candidates, we can focus laboratory resources on the most promising compounds."'
+        ]
+      ],
+      'Funding': [
+        [
+          '{LOCATION} — An AI startup developing specialized autonomous agents announced a record-breaking Series B funding round today. The capital injection, led by major venture capital funds and technology partners, values the company at over two billion dollars. The funding will be used to expand computing infrastructure and recruit engineering talent.',
+          'The company\'s core platform automates multi-step workflows in finance and customer relations, and has reported a substantial increase in enterprise adoptions. Market analysts observe that despite recent valuation debates, investors remain highly eager to back startups with practical, revenue-generating tools. Construction on a new dedicated data center is scheduled to begin immediately.',
+          '"This funding represents a strong vote of confidence in our product roadmap and our team\'s execution," the chief executive commented. "We are focused on delivering measurable efficiency gains for our enterprise clients as we scale our operations."'
+        ],
+        [
+          '{LOCATION} — Enterprise software integrations have driven record revenues for cloud platforms, highlighting the accelerating commercial demand for machine learning services. Financial analysts report that businesses are allocating substantial portions of their IT budgets to model deployment and vector databases. The trend is driving a hiring surge in data engineering.',
+          'Several major system integrators have reported three-digit growth in their analytics divisions, as clients seek custom model fine-tuning for proprietary database operations. However, hardware supply constraints and the rising cost of computational resources continue to pose minor risks to long-term forecasts. Financial advisers suggest focusing on operational efficiencies.',
+          '"We are seeing real, tangible ROI in enterprise implementations," said a corporate technology analyst. "The initial pilot phase is turning into full-scale production deployments across multiple sectors, establishing a solid foundation for business growth."'
+        ]
+      ],
+      'Ethics': [
+        [
+          '{LOCATION} — A coalition of safety auditors and computer scientists today released a comprehensive audit exposing systemic algorithmic bias in commercial recruiting software. The report details how automated screening models systematically downgrade applications based on demographic indicators. The findings have prompted calls for stricter auditing standards.',
+          'The research team analyzed thousands of historical decisions made by the automated systems, identifying key bias patterns in the training data sets. Several public advocacy groups are calling on developers to disclose their alignment methodologies and establish independent review boards. Bipartisan representatives have indicated interest in drafting safety rules.',
+          '"Automated systems can amplify historical discrimination if left unchecked," explained the lead auditor. "We need clear, enforceable standards to ensure that AI deployments do not replicate systemic inequalities under the guise of objective metrics."'
+        ],
+        [
+          '{LOCATION} — Next-generation audio and video synthesis tools have reached a level of quality that makes them indistinguishable from real media, prompting security analysts to warn of potential misinformation risks. A new report details how adversarial attacks can bypass current detection algorithms, highlighting the need for robust watermarking standards.',
+          'The study proposes a decentralized, cryptographic watermarking protocol that verifies media provenance directly at the time of creation. Major social platforms and media organizations are currently testing the integration of the protocol into their upload pipelines. Software providers are facing pressure to implement these standards by default.',
+          '"We cannot rely solely on detection tools that are constantly racing to catch up with generation capabilities," a cybersecurity researcher stated. "We must establish absolute verification standards at the source to maintain trust in digital information."'
+        ]
+      ],
+      'Policy': [
+        [
+          '{LOCATION} — The Regulatory Commission convened a special hearing today to discuss compliance frameworks for synthetic media and copyright laws. Bipartisan representatives queried major technology executives on the sources of their training datasets and the consent mechanisms provided to creators. The discussion signals impending legislation.',
+          'Key issues focused on whether training models on copyrighted works constitutes fair use, or if creators are entitled to direct compensation and opt-out controls. Several publishing coalitions have filed joint lawsuits seeking to establish licensing guidelines for public data scraping. Legal experts predict a landmark court ruling within the year.',
+          '"We are working to balance the encouragement of technical innovation with the protection of intellectual property," a committee member remarked. "The current legal ambiguity is unsustainable for both developers and content creators."'
+        ],
+        [
+          '{LOCATION} — Government agencies today released updated procurement guidelines, establishing strict transparency and safety controls for software tools used in public services. The rules require developers to document dataset origins, model alignment processes, and undergo third-party vulnerability testing before contracts are approved.',
+          'The guidelines represent one of the first formal policy frameworks regulating the direct implementation of automated decision tools in civic administration. Software providers seeking government contracts must provide detailed explanations of system limitations and potential failure cases. The regulations are scheduled to take effect in the next fiscal quarter.',
+          '"Public trust demands that automated systems used in public administration are auditable, transparent, and fair," the agency director explained. "These guidelines establish clear benchmarks for safety and accountability in public sector technology."'
+        ]
+      ],
+      'Agents': [
+        [
+          '{LOCATION} — Enterprise software developers today demonstrated next-generation multi-agent systems at the annual automation exposition. The platforms coordinate multiple specialized agents to complete complex software engineering and accounting workflows, showing a significant reduction in human intervention. The technology is drawing strong interest from corporate integrators.',
+          'The system utilizes a unified database schema and advanced context window management to synchronize agent memory across long-running tasks. Industry experts point out that while security controls and error recovery mechanisms are critical, the productivity gains are driving fast adoption. Pilot studies indicate a forty percent reduction in task completion times.',
+          '"We are moving beyond simple chat interfaces to active, autonomous collaborators," the lead engineer explained. "These systems can coordinate planning, execution, and verification steps autonomously, freeing developers to focus on architecture."'
+        ],
+        [
+          '{LOCATION} — Cloud infrastructure providers today announced low-cost serverless instances optimized for running local multi-agent networks. The services allow developers to scale agent nodes dynamically without managing underlying server resources, significantly lowering the barrier to entry for small businesses. Several open-source frameworks have announced integrations.',
+          'The launch addresses a key challenge in agent deployments: the computational cost and latency of coordinating multiple parallel model calls. By optimizing network routing and hardware allocation, providers claim a substantial decrease in latency for agent communications. A developer beta has been launched globally.',
+          '"Scaling agent coordinates is a complex infrastructure task," a technology director noted. "By shifting this load to optimized serverless architectures, we allow developers to build complex workflows without worrying about resource constraints."'
+        ]
+      ],
+      'AIOpinion': [
+        [
+          '{LOCATION} — As automated decision tools and coding assistants become deeply integrated into professional workflows, the question of human-in-the-loop oversight has taken on a new urgency. While these tools offer undeniable gains in speed and productivity, delegating final decisions to systems risks systemic failure. We must maintain human agency.',
+          'Too often, technology deployments prioritize immediate cost reduction over long-term stability and security. A balanced collaboration model treats automated assistants as advisors rather than autonomous decision-makers. Developing rigorous training programs in model oversight is critical to building a resilient professional environment.',
+          'Human nuance and critical judgment are the defining characteristics of human expertise. We must actively design systems that elevate, rather than diminish, human capabilities, establishing clear boundaries for automated execution in critical sectors.'
+        ],
+        [
+          '{LOCATION} — The conversation around artificial intelligence is frequently divided between existential panic and uncritical marketing hype, leaving a significant gap in our understanding of immediate issues. We must focus on the concrete, practical challenges of the current deployment phase, such as energy costs and labor displacement.',
+          'Training large-scale models requires substantial computational resources, contributing to rising energy demands and greenhouse emissions that challenge corporate sustainability goals. Simultaneously, the automation of cognitive tasks requires a proactive re-evaluation of workforce training and social safety nets. Nuance is required to navigate these challenges.',
+          'We must approach technological progress with pragmatism and accountability. By addressing the physical constraints of computing and the social realities of automation, we can build a technical landscape that is both sustainable and beneficial to society.'
+        ]
       ]
     };
   }
@@ -762,7 +834,11 @@ class MockNewsGenerator {
   }
 
   getRandomContentParagraphs(title, category, sourceName) {
-    const templates = this.bodyTemplates[category] || this.bodyTemplates['Politics'];
+    let lookupCategory = category;
+    if (category === 'Opinion' && isAIPage) {
+      lookupCategory = 'AIOpinion';
+    }
+    const templates = this.bodyTemplates[lookupCategory] || this.bodyTemplates['Politics'];
     const selectedTemplate = templates[Math.floor(Math.random() * templates.length)];
     
     const locations = ['NEW DELHI', 'MUMBAI', 'BENGALURU', 'CHENNAI', 'KOLKATA', 'HYDERABAD'];
