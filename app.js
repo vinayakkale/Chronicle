@@ -126,6 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initSources();
   initCategories();
   
+  // Load dynamic metadata and weather/location
+  loadWeatherAndLocation();
+  updateRefreshedTime();
+  
   // Bind Event Listeners
   bindEvents();
   
@@ -139,6 +143,131 @@ function initDate() {
   const today = new Date();
   // We can lock to Estd matching or use local system date format
   DOM.mastheadDate.textContent = today.toLocaleDateString('en-IN', options);
+}
+
+// Dynamic Geolocation and Weather Engine
+async function loadWeatherAndLocation() {
+  const locationEl = document.getElementById('user-location');
+  const weatherEl = document.getElementById('user-weather');
+  
+  if (locationEl) locationEl.textContent = 'Locating...';
+  if (weatherEl) weatherEl.textContent = 'Loading weather...';
+  
+  let city = 'Mumbai';
+  let country = 'IN';
+  let lat = 19.076;
+  let lon = 72.8775;
+  let geoLoaded = false;
+  
+  // 1. Try ipapi.co
+  try {
+    const ipapiRes = await fetch('https://ipapi.co/json/');
+    if (ipapiRes.ok) {
+      const ipdata = await ipapiRes.json();
+      if (ipdata && ipdata.city) {
+        city = ipdata.city;
+        country = ipdata.country_code || country;
+        lat = ipdata.latitude || lat;
+        lon = ipdata.longitude || lon;
+        geoLoaded = true;
+      }
+    }
+  } catch (e) {
+    console.warn('ipapi.co failed:', e);
+  }
+  
+  // 2. Try ipwho.is if ipapi.co failed
+  if (!geoLoaded) {
+    try {
+      const ipwhoisRes = await fetch('https://ipwho.is/');
+      if (ipwhoisRes.ok) {
+        const ipdata = await ipwhoisRes.json();
+        if (ipdata && ipdata.success !== false && ipdata.city) {
+          city = ipdata.city;
+          country = ipdata.country_code || country;
+          lat = ipdata.latitude || lat;
+          lon = ipdata.longitude || lon;
+          geoLoaded = true;
+        }
+      }
+    } catch (e) {
+      console.warn('ipwho.is failed:', e);
+    }
+  }
+  
+  // 3. Try freeipapi.com as third fallback
+  if (!geoLoaded) {
+    try {
+      const freeipRes = await fetch('https://freeipapi.com/api/json');
+      if (freeipRes.ok) {
+        const ipdata = await freeipRes.json();
+        if (ipdata && ipdata.cityName) {
+          city = ipdata.cityName;
+          country = ipdata.countryCode || country;
+          lat = ipdata.latitude || lat;
+          lon = ipdata.longitude || lon;
+          geoLoaded = true;
+        }
+      }
+    } catch (e) {
+      console.warn('freeipapi.com failed:', e);
+    }
+  }
+  
+  if (locationEl) {
+    locationEl.textContent = `${city}, ${country}`;
+  }
+  
+  try {
+    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    if (!weatherRes.ok) throw new Error('Failed to fetch weather data');
+    const weatherData = await weatherRes.json();
+    const current = weatherData.current_weather;
+    
+    if (current && weatherEl) {
+      const temp = Math.round(current.temperature);
+      const code = current.weathercode;
+      
+      const weatherDescriptions = {
+        0: 'Clear sky',
+        1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+        45: 'Fog', 48: 'Depositing rime fog',
+        51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
+        56: 'Light freezing drizzle', 57: 'Dense freezing drizzle',
+        61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
+        66: 'Light freezing rain', 67: 'Heavy freezing rain',
+        71: 'Slight snow fall', 73: 'Moderate snow fall', 75: 'Heavy snow fall',
+        77: 'Snow grains',
+        80: 'Slight rain showers', 81: 'Moderate rain showers', 82: 'Violent rain showers',
+        85: 'Slight snow showers', 86: 'Heavy snow showers',
+        95: 'Thunderstorm', 96: 'Thunderstorm with slight hail', 99: 'Thunderstorm with heavy hail'
+      };
+      
+      const desc = weatherDescriptions[code] || 'Sunny';
+      weatherEl.textContent = `Temp: ${temp}°C • ${desc}`;
+    }
+  } catch (err) {
+    console.error('Failed to load weather data:', err);
+    if (weatherEl) {
+      weatherEl.textContent = 'Temp: 29°C • Sunny';
+    }
+  }
+}
+
+// Dynamic Refreshed Timestamp
+function updateRefreshedTime() {
+  const refreshedEl = document.getElementById('refreshed-time');
+  if (!refreshedEl) return;
+  
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  
+  refreshedEl.textContent = `Refreshed at ${yyyy}${mm}${dd} ${hh}:${min}:${ss}`;
 }
 
 // -------------------------------------------------------------
@@ -222,7 +351,9 @@ function isBookmarked(articleId) {
 // -------------------------------------------------------------
 // CATEGORIES TABS MANAGER
 // -------------------------------------------------------------
-const CATEGORIES_LIST = ['All', 'Politics', 'Business', 'Tech', 'Science', 'Sports', 'Opinion'];
+const CATEGORIES_LIST = isAIPage
+  ? ['All', 'Models & Research', 'Business & Funding', 'Ethics & Safety', 'Regulation & Policy', 'Applications & Agents', 'Opinion & Analysis']
+  : ['All', 'Politics', 'Business', 'Tech', 'Science', 'Sports', 'Opinion'];
 
 function initCategories() {
   DOM.categoriesContainer.innerHTML = '';
@@ -412,6 +543,7 @@ async function loadFeeds(forceRefresh = false) {
     DOM.skeletonGrid.classList.add('hidden');
     DOM.heroCarouselSection.classList.remove('opacity-40');
     renderFeed();
+    updateRefreshedTime();
   }
 }
 
@@ -479,7 +611,13 @@ function getImageFallback(category) {
     "Politics": "photo-1540910419892-4a36d2c3266c", 
     "Sports": "photo-1508098682722-e99c43a406b2", 
     "Science": "photo-1451187580459-43490279c0fa", 
-    "Opinion": "photo-1455390582262-044cdead277a" 
+    "Opinion": "photo-1455390582262-044cdead277a",
+    "Models & Research": "photo-1451187580459-43490279c0fa",
+    "Business & Funding": "photo-1590283603385-17ffb3a7f29f",
+    "Ethics & Safety": "photo-1504711434969-e33886168f5c",
+    "Regulation & Policy": "photo-1540910419892-4a36d2c3266c",
+    "Applications & Agents": "photo-1518770660439-4636190af475",
+    "Opinion & Analysis": "photo-1455390582262-044cdead277a"
   };
   const unsplashId = imgTags[category] || "photo-1504711434969-e33886168f5c";
   return `https://images.unsplash.com/${unsplashId}?w=800&auto=format&fit=crop&q=80`;
