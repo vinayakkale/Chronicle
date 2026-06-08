@@ -352,7 +352,7 @@ function isBookmarked(articleId) {
 // CATEGORIES TABS MANAGER
 // -------------------------------------------------------------
 const CATEGORIES_LIST = isAIPage
-  ? ['All', 'Models & Research', 'Business & Funding', 'Ethics & Safety', 'Regulation & Policy', 'Applications & Agents', 'Opinion & Analysis']
+  ? ['All', 'Research', 'Funding', 'Ethics', 'Policy', 'Agents', 'Opinion']
   : ['All', 'Politics', 'Business', 'Tech', 'Science', 'Sports', 'Opinion'];
 
 function initCategories() {

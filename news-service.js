@@ -38,26 +38,26 @@ const GENERAL_SOURCES = [
 ];
 
 const AI_SOURCES = [
-  { id: 'wired-ai', name: 'Wired AI', focus: 'AI & Future Tech', url: 'https://www.wired.com/feed/category/artificial-intelligence/latest/rss', defaultCategory: 'Applications & Agents', homepage: 'https://www.wired.com/tag/artificial-intelligence/' },
-  { id: 'techcrunch-ai', name: 'TechCrunch AI', focus: 'AI Startups & Funding', url: 'https://techcrunch.com/category/artificial-intelligence/feed/', defaultCategory: 'Business & Funding', homepage: 'https://techcrunch.com/category/artificial-intelligence/' },
-  { id: 'ai-news', name: 'AI News', focus: 'Industry Insights & Policy', url: 'https://artificialintelligence-news.com/feed/', defaultCategory: 'Regulation & Policy', homepage: 'https://artificialintelligence-news.com' },
-  { id: 'venturebeat-ai', name: 'VentureBeat AI', focus: 'Enterprise AI & Models', url: 'https://venturebeat.com/category/ai/feed/', defaultCategory: 'Business & Funding', homepage: 'https://venturebeat.com/category/ai/' },
-  { id: 'mit-ai', name: 'MIT Tech Review AI', focus: 'AI Research & Society', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', defaultCategory: 'Models & Research', homepage: 'https://www.technologyreview.com/topic/artificial-intelligence/' },
-  { id: 'arxiv-ai', name: 'ArXiv AI', focus: 'Academic Papers & ML', url: 'https://rss.arxiv.org/rss/cs.AI', defaultCategory: 'Models & Research', homepage: 'https://arxiv.org/list/cs.AI/recent' },
-  { id: 'infoq-ai', name: 'InfoQ AI', focus: 'AI Development & Eng', url: 'https://feed.infoq.com/ai-ml/news', defaultCategory: 'Applications & Agents', homepage: 'https://www.infoq.com/ai-ml/' }
+  { id: 'wired-ai', name: 'Wired AI', focus: 'AI & Future Tech', url: 'https://www.wired.com/feed/category/artificial-intelligence/latest/rss', defaultCategory: 'Agents', homepage: 'https://www.wired.com/tag/artificial-intelligence/' },
+  { id: 'techcrunch-ai', name: 'TechCrunch AI', focus: 'AI Startups & Funding', url: 'https://techcrunch.com/category/artificial-intelligence/feed/', defaultCategory: 'Funding', homepage: 'https://techcrunch.com/category/artificial-intelligence/' },
+  { id: 'ai-news', name: 'AI News', focus: 'Industry Insights & Policy', url: 'https://artificialintelligence-news.com/feed/', defaultCategory: 'Policy', homepage: 'https://artificialintelligence-news.com' },
+  { id: 'venturebeat-ai', name: 'VentureBeat AI', focus: 'Enterprise AI & Models', url: 'https://venturebeat.com/category/ai/feed/', defaultCategory: 'Funding', homepage: 'https://venturebeat.com/category/ai/' },
+  { id: 'mit-ai', name: 'MIT Tech Review AI', focus: 'AI Research & Society', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', defaultCategory: 'Research', homepage: 'https://www.technologyreview.com/topic/artificial-intelligence/' },
+  { id: 'arxiv-ai', name: 'ArXiv AI', focus: 'Academic Papers & ML', url: 'https://rss.arxiv.org/rss/cs.AI', defaultCategory: 'Research', homepage: 'https://arxiv.org/list/cs.AI/recent' },
+  { id: 'infoq-ai', name: 'InfoQ AI', focus: 'AI Development & Eng', url: 'https://feed.infoq.com/ai-ml/news', defaultCategory: 'Agents', homepage: 'https://www.infoq.com/ai-ml/' }
 ];
 
 const isAIPage = typeof window !== 'undefined' && window.CHRONICLE_CONFIG && window.CHRONICLE_CONFIG.isAIPage;
 
 const NEWS_SOURCES = isAIPage ? AI_SOURCES : GENERAL_SOURCES;
-const CACHE_KEY = isAIPage ? 'chronicle_ai_cache' : 'chronicle_news_cache';
-const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time' : 'chronicle_news_cache_time';
+const CACHE_KEY = isAIPage ? 'chronicle_ai_cache_v2' : 'chronicle_news_cache_v2';
+const CACHE_TIME_KEY = isAIPage ? 'chronicle_ai_cache_time_v2' : 'chronicle_news_cache_time_v2';
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 class MockNewsGenerator {
   constructor() {
     this.categories = isAIPage
-      ? ['Models & Research', 'Business & Funding', 'Ethics & Safety', 'Regulation & Policy', 'Applications & Agents', 'Opinion & Analysis']
+      ? ['Research', 'Funding', 'Ethics', 'Policy', 'Agents', 'Opinion']
       : ["Politics", "Business", "Tech", "Science", "Sports", "Opinion"];
     this.sources = NEWS_SOURCES;
     
@@ -413,224 +413,224 @@ class MockNewsGenerator {
 
     const aiHeadlinePools = {
       'wired-ai': {
-        'Regulation & Policy': [
+        'Policy': [
           'EU Parliament Formalizes Implementation Guidelines for Landmark AI Act',
           'Senate Committee Queries Major AI CEOs on Copyright and Training Data',
           'Global Summit Outlines Safety Accords for Frontier Foundation Models'
         ],
-        'Business & Funding': [
+        'Funding': [
           'Nvidia Market Cap Vaults to New Records Amid Massive GPU Infrastructure Demand',
           'Generative AI Startups Raise Record Venture Funding Despite Valuation Skepticism',
           'AI Software Licensing Model Projects Multi-Billion Enterprise Market Surge'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'New Open-Source LLM Releases Claim Performance Parity with Proprietary APIs',
           'Web Framework Releases Complete Native Integration for Local Inference',
           'Hardware Startups Unveil Specialized Wearables with Built-In Agents'
         ],
-        'Models & Research': [
+        'Research': [
           'Researchers Map Neural Network Activation Paths to Improve Model Interpretability',
           'AI-Powered Biological Simulation Discovers Target Candidates for Rare Diseases',
           'New Compute-Efficient Architecture Challenges Transformer Domination'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'The Ethics of Synthetic Data: Are We training Models on Hallucinations?',
           'Deepfake Detection Startup Raises Seed Funding Amid Verification Backlash',
           'Research Lab Outlines Red-Teaming Guidelines for Advanced Reasoning Models'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'Why Open-Source AI is Vital to Democratic Access and Safety',
           'AGI Timelines: Navigating the Gap Between Hype and Actual Engineering',
           'The Silicon Rush: Why Capital Concentration in AI Could Limit Innovation'
         ]
       },
       'techcrunch-ai': {
-        'Regulation & Policy': [
+        'Policy': [
           'Copyright Protection Bureau Registers Landmark Claims Against Training Data Scrapers',
           'State Department Establishes Dedicated Taskforce for Autonomous Agents Policy',
           'Municipalities Face Public Backlash Over Automated Algorithmic Benefits Allocation'
         ],
-        'Business & Funding': [
+        'Funding': [
           'OpenAI Revenue Crosses New Thresholds Led by ChatGPT Plus Enterprise Subscriptions',
           'Robotics Startup Enters Unicorn Territory Following Series B Lead by Nvidia',
           'Silicon Valley VCs Pivot Capital Allocation Strategies Exclusively to AI Agent Dev'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'Developer Tooling Startup Launches Unified API for Multi-Agent Orchestration',
           'New Quantization Algorithms Compress Frontier Models to Run on Smartphones',
           'Cloud Providers Announce Low-Cost Serverless Instances for AI Inference'
         ],
-        'Models & Research': [
+        'Research': [
           'Deep Learning System Designs Novel Crystalline Structures in Minutes',
           'Supercomputing Facility Launches Cluster Exclusively Configured for Neural Nets',
           'Climate Research Center Uses Neural Networks to Model Extreme Weather Patterns'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'Biometric Tracking Framework Faces Legal Scrutiny Over Consent Concerns',
           'Algorithmic Bias Audit Reveals Persistent Disparities in Recruiting Software',
           'Watermarking Standard for Generative Media Adopted by Major Content Platforms'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'Are We Expecting Too Much? Setting Realistic Milestones for Autonomous Agents',
           'The Creator Class vs. The Training Set: Seeking a Fair Compensation Model',
           'Beyond the LLM: Why the Next Stage of AI Requires Physical Embodiment'
         ]
       },
       'ai-news': {
-        'Regulation & Policy': [
+        'Policy': [
           'Bipartisan Coalition Proposes Federal AI Safety Standards Bill',
           'State Regulators Target Algorithmic Pricing Software in Rental Markets',
           'Global Accord Restricts Lethal Autonomous Weapons Systems Development'
         ],
-        'Business & Funding': [
+        'Funding': [
           'AI Chip Startups Secure Billions to Challenge Nvidia Dominance',
           'Enterprise AI Deployment Surges Forty Percent Year-Over-Year',
           'Publishing Houses Sign Landmark Multi-Million Content Licensing Deals'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'New Multimodal Models Benchmark Human-Level Coding Performance',
           'Open-Source Consortium Releases Ultrafast Local Inference Engine',
           'Database Vector Search Indexing Speeds Up by Tenfold in New Release'
         ],
-        'Models & Research': [
+        'Research': [
           'AI-Designed Enzyme Breaks Down Recyclable Plastics in Hours',
           'Machine Learning Predicts Quantum Phase Transitions with High Precision',
           'Deep Neural Networks Map Previously Unknown Brain Circuitry'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'Watermarking Standards for Synthetic Content Deployed at Scale',
           'Audit Shows Widespread Algorithmic Bias in Automation Systems',
           'Safety Board Proposes Strict Containment Protocols for Agent Experiments'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'The Risk of Monopoly in Foundation Models: Why Open Access Matters',
           'Redefining Work: How AI Co-pilots Are Reshaping White-Collar Careers',
           'The Alignment Problem: Ensuring AI Systems Remain Beneficial to Humanity'
         ]
       },
       'venturebeat-ai': {
-        'Regulation & Policy': [
+        'Policy': [
           'Government Adopts AI Code of Conduct for Public Procurement',
           'Senate Panel Debates National Security Risks of Open-Weights Models',
           'Regulators Probe AI Search Startup Over Copyright Fair Use Claims'
         ],
-        'Business & Funding': [
+        'Funding': [
           'Enterprise AI Software Market Poised to Hit $200 Billion by 2028',
           'Database Startup Valued at $5 Billion Following Series D Funding',
           'AI Consulting Services Drive Record Revenue for Major Integrators'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'Frontier Model Provider Releases Real-Time Voice API for Developers',
           'New Code Assistant Integration Minimizes Bugs in Large Codebases',
           'Enterprise Agent Platform automates Complex Multi-Step Office Workflows'
         ],
-        'Models & Research': [
+        'Research': [
           'Biomolecular ML Model Predicts Protein Interactions with Unprecedented Speed',
           'Autonomous Lab Facility Speeds Up Material Discovery by 100x',
           'AI Analysis of Deep Space Data Reveals 50 New Exoplanets'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'Study Details Security Exploits targeting Retrieval-Augmented Generation',
           'Large-Scale Audit Exposes Vulnerabilities in Model Safeguard Configurations',
           'Red-Teaming Suite Automated to Detect Hallucinations in Financial Pipelines'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'The Pragmatic AI: Moving Past the AGI Discussion to Solve Real Problems',
           'Sovereign AI: Why Every Country Needs Independent Computing Infrastructure',
           'The Trust Deficit: Overcoming Hallucinations in Enterprise Workloads'
         ]
       },
       'mit-ai': {
-        'Regulation & Policy': [
+        'Policy': [
           'Policy Research Identifies Algorithmic Bias in Criminal Justice System',
           'EU Regulators Detail Fines for Violations of AI Act Transparency Clauses',
           'Federal Trade Commission Investigates Tech Giants Over AI Startup Deals'
         ],
-        'Business & Funding': [
+        'Funding': [
           'Startup Accelerator Announces Influx of GPU Compute Grants for Founders',
           'AI Translation Market Expands Rapidly in Emerging Regions',
           'Hardware Conglomerate Partners with AI Lab for In-House Model Customization'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'Researchers Unveil Energy-Efficient AI Chip Design Using Photonic Channels',
           'New Benchmarking Suite Evaluates Commonsense Reasoning in LLMs',
           'Open-Source Developer Platform Integrates Local Models by Default'
         ],
-        'Models & Research': [
+        'Research': [
           'AI Model Discovers Class of Antibiotics Able to Kill Resistant Bacteria',
           'Machine Learning System Deciphers Ancient Unreadable Scripts',
           'Deep Learning Predicts Protein Folding Mechanics in Dynamic Environments'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'Deepfake Audio Synthesis Reaches Uncanny Parity, Prompting Ban Calls',
           'FTC Issues Warning Over Unauthorized Personal Data Scraping for Training',
           'Security Analysts Warn of Zero-Day Exploits using Untested AI Packages'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'The Human Factor: Why AI Systems Require Human-in-the-Loop Oversight',
           'The Carbon Footprint of AI: Addressing the Energy Costs of Training',
           'Copyright Law is Ill-Equipped for Generative AI: Time for Reform'
         ]
       },
       'arxiv-ai': {
-        'Regulation & Policy': [
+        'Policy': [
           'Study Evaluates Influence of LLM Personas on Political Discourse',
           'Researchers Propose Watermarking Standards for Synthetic Content',
           'Framework for Auditing Transparency in Algorithmic Decision Systems'
         ],
-        'Business & Funding': [
+        'Funding': [
           'Academic Paper Evaluates Economic Impact of Automated Code Assistants',
           'Economic Analysis Details Productivity Gains in Legal AI Workflows',
           'Valuation Framework Proposed for Open-Source Foundation Models'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'Paper Introduces Linear-Time Alternative to Traditional Transformers',
           'New Optimization Technique Reduces Fine-Tuning Memory Requirements by 80%',
           'Researchers Release High-Quality Instruction-Tuning Dataset for Math'
         ],
-        'Models & Research': [
+        'Research': [
           'Deep Learning Solver Accelerates Fluid Dynamics Simulations by 1000x',
           'ML Framework Decodes Brain Activity Into Text Representation',
           'Physics-Informed Neural Networks Solve Complex Wave Equations'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'Theoretical Limits of Safety Alignment: Can Models Be 100% Secure?',
           'Adversarial Attacks on Visual Models Highlight Vulnerabilities in Safety Filters',
           'Decentralized Protocol Outlines Trustless Model Auditing and Safe Verification'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'On the Limits of Autoregressive LLMs for Mathematical Reasoning',
           'The Open-Weights Debate: Balancing Academic Freedom and Misuse Risks',
           'Evaluating Generalization Capabilities in Advanced Machine Learning Models'
         ]
       },
       'infoq-ai': {
-        'Regulation & Policy': [
+        'Policy': [
           'Developers Seek Legal Protections Over Automated Code Suggestions',
           'Cyber Security Agency Releases Hardening Guidelines for AI Pipelines',
           'Government IT Department Integrates Open-Source Models for Public Portal'
         ],
-        'Business & Funding': [
+        'Funding': [
           'Enterprise Software Giants Race to Integrate Copilot Tooling in Core Suites',
           'IT Leaders Report Significant ROI in Automated Customer Support Pipelines',
           'Venture Capitalists Outline Infrastructure and App Layer Investment Trends'
         ],
-        'Applications & Agents': [
+        'Agents': [
           'Popular Web Framework Adds Native Support for Vector Databases',
           'Leading IDE Launches Deep Context Integration for Better Code Completion',
           'New Open Source Framework Simplifies Local Multi-Agent Deployment'
         ],
-        'Models & Research': [
+        'Research': [
           'Neural Network Architectures Optimized for Low-Power IoT Devices',
           'ML Model Analyzes Software Telemetry to Predict Infrastructure Outages',
           'Scientists Use AI Models to Optimize Quantum Computing Error Correction'
         ],
-        'Ethics & Safety': [
+        'Ethics': [
           'Security Analysis Outlines RAG Vulnerabilities to Prompt Injections',
           'Enterprise Auditing Framework Details Security Controls for AI Execution',
           'Model Provenance Framework Establishes Authenticity Verification Standards'
         ],
-        'Opinion & Analysis': [
+        'Opinion': [
           'The Rise of the AI-Enhanced Developer: How Roles Are Evolving',
           'Why Prompt Engineering is Evolving Into Multi-Agent Software Architecture',
           'Navigating Data Security Regulations When Deploying LLMs in Enterprise'
@@ -751,7 +751,12 @@ class MockNewsGenerator {
       'Tech': 'Key innovations, startup updates, and digital infrastructure developments transforming technological operations and access.',
       'Science': 'Scientific research, ecological findings, and weather reports analyzing climate adaptation and technology applications.',
       'Sports': 'Highlights from recent national tournaments, training camps, and policy directives promoting grassroots athletic development.',
-      'Opinion': 'An in-depth perspective on societal shifts, policy implications, and cultural conservation strategies in a fast-paced environment.'
+      'Opinion': 'An in-depth perspective on societal shifts, policy implications, and cultural conservation strategies in a fast-paced environment.',
+      'Research': 'Key academic research papers, algorithmic breakthroughs, and machine learning models shaping the frontiers of AI.',
+      'Funding': 'Startup funding rounds, venture capital flows, mergers, acquisitions, and the financial ecosystem driving AI expansion.',
+      'Ethics': 'Safety alignment debates, ethical auditing, bias mitigation strategies, and the security concerns of autonomous AI systems.',
+      'Policy': 'Government regulations, senate hearings, international AI accords, copyright disputes, and policy frameworks.',
+      'Agents': 'AI tools, developer frameworks, multi-agent systems, copilot integrations, and autonomous applications in production.'
     };
     return summaries[category] || 'Latest updates and comprehensive coverage of recent developments.';
   }
@@ -789,7 +794,12 @@ class MockNewsGenerator {
         "Politics": "photo-1540910419892-4a36d2c3266c", 
         "Sports": "photo-1508098682722-e99c43a406b2", 
         "Science": "photo-1451187580459-43490279c0fa", 
-        "Opinion": "photo-1455390582262-044cdead277a" 
+        "Opinion": "photo-1455390582262-044cdead277a",
+        "Research": "photo-1451187580459-43490279c0fa",
+        "Funding": "photo-1590283603385-17ffb3a7f29f",
+        "Ethics": "photo-1504711434969-e33886168f5c",
+        "Policy": "photo-1540910419892-4a36d2c3266c",
+        "Agents": "photo-1518770660439-4636190af475"
       };
       
       const randomOffset = Math.floor(Math.random() * 20) + 1;
@@ -885,12 +895,11 @@ const NewsService = {
       "Sports": "photo-1508098682722-e99c43a406b2", 
       "Science": "photo-1451187580459-43490279c0fa", 
       "Opinion": "photo-1455390582262-044cdead277a",
-      "Models & Research": "photo-1451187580459-43490279c0fa",
-      "Business & Funding": "photo-1590283603385-17ffb3a7f29f",
-      "Ethics & Safety": "photo-1504711434969-e33886168f5c",
-      "Regulation & Policy": "photo-1540910419892-4a36d2c3266c",
-      "Applications & Agents": "photo-1518770660439-4636190af475",
-      "Opinion & Analysis": "photo-1455390582262-044cdead277a"
+      "Research": "photo-1451187580459-43490279c0fa",
+      "Funding": "photo-1590283603385-17ffb3a7f29f",
+      "Ethics": "photo-1504711434969-e33886168f5c",
+      "Policy": "photo-1540910419892-4a36d2c3266c",
+      "Agents": "photo-1518770660439-4636190af475"
     };
     const unsplashId = imgTags[category] || "photo-1504711434969-e33886168f5c";
     return `https://images.unsplash.com/${unsplashId}?w=800&auto=format&fit=crop&q=80`;
@@ -900,25 +909,25 @@ const NewsService = {
     const text = ((item.title || '') + ' ' + (item.description || '') + ' ' + (item.content || '') + ' ' + (item.categories || []).join(' ')).toLowerCase();
     
     if (text.includes('eu ai act') || text.includes('parliament') || text.includes('hearing') || text.includes('regulation') || text.includes('policy') || text.includes('senate') || text.includes('bill') || text.includes('government') || text.includes('ftc') || text.includes('copyright') || text.includes('lawsuit') || text.includes('sue') || text.includes('legal') || text.includes('guidelines') || text.includes('regulatory') || text.includes('auditing')) {
-      return 'Regulation & Policy';
+      return 'Policy';
     }
     if (text.includes('bias') || text.includes('ethical') || text.includes('ethics') || text.includes('safety') || text.includes('alignment') || text.includes('deepfake') || text.includes('misinformation') || text.includes('hallucinate') || text.includes('synthetic data') || text.includes('hallucinations') || text.includes('watermarking') || text.includes('risks')) {
-      return 'Ethics & Safety';
+      return 'Ethics';
     }
     if (text.includes('nvidia') || text.includes('stock') || text.includes('raise') || text.includes('fund') || text.includes('billion') || text.includes('million') || text.includes('startup') || text.includes('funding') || text.includes('venture') || text.includes('vc') || text.includes('revenue') || text.includes('acquire') || text.includes('acquisition') || text.includes('market cap') || text.includes('enterprise') || text.includes('business') || text.includes('commercial') || text.includes('finance') || text.includes('cooperative') || text.includes('banking') || text.includes('deals') || text.includes('ipo')) {
-      return 'Business & Funding';
+      return 'Funding';
     }
     if (text.includes('agent') || text.includes('tool') || text.includes('app') || text.includes('copilot') || text.includes('assistant') || text.includes('framework') || text.includes('api') || text.includes('robot') || text.includes('autonomous') || text.includes('device') || text.includes('wearable') || text.includes('development') || text.includes('software') || text.includes('vector') || text.includes('indexing') || text.includes('integration') || text.includes('platforms')) {
-      return 'Applications & Agents';
+      return 'Agents';
     }
     if (text.includes('paper') || text.includes('arxiv') || text.includes('research') || text.includes('model') || text.includes('llm') || text.includes('gpt') || text.includes('transformer') || text.includes('neural') || text.includes('dataset') || text.includes('training') || text.includes('weights') || text.includes('benchmark') || text.includes('photonic') || text.includes('compute-efficient') || text.includes('linear-time')) {
-      return 'Models & Research';
+      return 'Research';
     }
     if (text.includes('opinion') || text.includes('essay') || text.includes('future of work') || text.includes('hype') || text.includes('editorial') || text.includes('perspective') || text.includes('analysis') || text.includes('view') || text.includes('creator class') || text.includes('democratization') || text.includes('trust deficit')) {
-      return 'Opinion & Analysis';
+      return 'Opinion';
     }
     
-    return defaultCategory || 'Models & Research';
+    return defaultCategory || 'Research';
   },
 
   detectCategory(item, defaultCategory) {
