@@ -273,6 +273,14 @@ const msalConfig = {
 };
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 
+let msalReady = false;
+async function ensureMsalReady() {
+  if (!msalReady) {
+    await msalInstance.initialize();
+    msalReady = true;
+  }
+}
+
 const ICON_MAP = {
   pptx: { label: "PPT", color: "#C0392B" },
   docx: { label: "DOC", color: "#194247" },
@@ -289,6 +297,7 @@ let activeSection = "";
 /* ---- Auth ---- */
 async function signIn() {
   try {
+    await ensureMsalReady();
     const resp = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
     msalInstance.setActiveAccount(resp.account);
     await afterSignIn();
@@ -310,6 +319,7 @@ function showGateError(msg) {
 }
 
 async function getToken() {
+  await ensureMsalReady();
   const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
   if (!account) throw new Error("Not signed in");
   try {
@@ -322,7 +332,8 @@ async function getToken() {
 }
 
 document.getElementById("signInBtn").addEventListener("click", signIn);
-document.getElementById("signOutBtn").addEventListener("click", () => {
+document.getElementById("signOutBtn").addEventListener("click", async () => {
+  await ensureMsalReady();
   msalInstance.logoutRedirect();
 });
 
@@ -514,6 +525,7 @@ document.getElementById("clearFilters").addEventListener("click", () => {
 /* ---- On load: try silent SSO first ---- */
 (async function init() {
   try {
+    await ensureMsalReady();
     await msalInstance.handleRedirectPromise();
     const account = msalInstance.getAllAccounts()[0];
     if (account) {
