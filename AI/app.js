@@ -17,7 +17,8 @@ const CONFIG = {
     subsection4: "Subsection4",
     fileExtension: "field_4",
     linkUrl: "field_5",
-    tags: "field_6"
+    tags: "field_6",
+    modified: "Modified"
   }
 };
 /* ========================================================= */
@@ -37,14 +38,15 @@ const msalInstance = new msal.PublicClientApplication(msalConfig);
 const msalReady = msalInstance.initialize();
 
 const ICON_MAP = {
-  pptx: { label: "PPT", color: "#C0392B" },
-  docx: { label: "DOC", color: "#194247" },
-  xlsx: { label: "XLS", color: "#1E7A46" },
-  pdf:  { label: "PDF", color: "#0C2226" },
-  mp4:  { label: "VID", color: "#337077" },
-  url:  { label: "LNK", color: "#52E081" },
-  link: { label: "LNK", color: "#52E081" }
+  pptx: { icon: "ti-presentation", bg: "#FBEAEA", color: "#A32D2D" },
+  docx: { icon: "ti-file-text", bg: "#E6F1FB", color: "#185FA5" },
+  xlsx: { icon: "ti-table", bg: "#EAF3DE", color: "#3B6D11" },
+  pdf:  { icon: "ti-file-type-pdf", bg: "#FAEEDA", color: "#854F0B" },
+  mp4:  { icon: "ti-video", bg: "#EEEDFE", color: "#534AB7" },
+  url:  { icon: "ti-external-link", bg: "#E1F5EE", color: "#0F6E56" },
+  link: { icon: "ti-external-link", bg: "#E1F5EE", color: "#0F6E56" }
 };
+const ICON_DEFAULT = { icon: "ti-file", bg: "#F1EFE8", color: "#5F5E5A" };
 
 let allItems = [];
 
@@ -143,7 +145,8 @@ async function loadItems() {
         subsectionPath: breadcrumbParts.join(" > "), // used by the flat Search tab
         ext: (f[c.fileExtension] || "link").toLowerCase(),
         url: link || "#",
-        tags: f[c.tags] || ""
+        tags: f[c.tags] || "",
+        modified: f[c.modified] || null
       };
     });
 
@@ -194,6 +197,7 @@ function buildTabs() {
 
 function showSearchView() {
   document.getElementById("browseView").style.display = "none";
+  document.getElementById("statsStrip").style.display = "none";
   document.getElementById("searchView").style.display = "block";
   renderSearch();
 }
@@ -214,7 +218,30 @@ function selectSection(section) {
     t.classList.toggle("active", t.dataset.section === section);
   });
 
+  renderStatsStrip(section);
   renderPanel1();
+}
+
+function renderStatsStrip(section) {
+  const items = allItems.filter(i => i.section === section);
+  const sub1Count = new Set(items.map(i => bucket(i.rawSub1))).size;
+  let mostRecent = null;
+  items.forEach(i => {
+    if (i.modified && (!mostRecent || i.modified > mostRecent.modified)) mostRecent = i;
+  });
+
+  const strip = document.getElementById("statsStrip");
+  let html = `<div class="stat-chip"><i class="ti ti-files" aria-hidden="true"></i><b>${items.length}</b><span class="label">items</span></div>
+    <div class="stat-chip"><i class="ti ti-folder" aria-hidden="true"></i><b>${sub1Count}</b><span class="label">subsections</span></div>`;
+
+  if (mostRecent) {
+    const d = new Date(mostRecent.modified);
+    const dateStr = isNaN(d) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    html += `<div class="stat-chip"><i class="ti ti-clock" aria-hidden="true"></i><span class="label">Updated ${dateStr} —</span><b style="font-size:12.5px;">${escapeHtml(mostRecent.title)}</b></div>`;
+  }
+
+  strip.innerHTML = html;
+  strip.style.display = "flex";
 }
 
 /* ---- Panel 1: Subsection (left) ---- */
@@ -228,7 +255,7 @@ function renderPanel1() {
   let html = `<div class="panel-label">Subsection</div>`;
   values.forEach(v => {
     const count = items.filter(i => bucket(i.rawSub1) === v).length;
-    html += `<div class="panel-item ${v === browseState.sub1 ? "active" : ""}" data-val="${escapeAttr(v)}">
+    html += `<div class="panel-item ${v === browseState.sub1 ? "active" : ""} ${v === MISC ? "misc" : ""}" data-val="${escapeAttr(v)}">
       ${escapeHtml(v)}<span class="count">${count}</span>
     </div>`;
   });
@@ -261,7 +288,7 @@ function renderPanel2() {
   let html = `<div class="panel-label">Subsection2</div>`;
   values.forEach(v => {
     const count = items.filter(i => bucket(i.rawSub2) === v).length;
-    html += `<div class="panel-item ${v === browseState.sub2 ? "active" : ""}" data-val="${escapeAttr(v)}">
+    html += `<div class="panel-item ${v === browseState.sub2 ? "active" : ""} ${v === MISC ? "misc" : ""}" data-val="${escapeAttr(v)}">
       ${escapeHtml(v)}<span class="count">${count}</span>
     </div>`;
   });
@@ -291,7 +318,7 @@ function renderAccordion() {
 
   if (scoped.length === 0) {
     main.innerHTML = `<div class="accordion-path">${pathLabel}</div>
-      <div class="empty-state"><div class="big">No items here</div>Try a different subsection.</div>`;
+      <div class="empty-state dashed"><div class="big">No items here</div>Try a different subsection.</div>`;
     return;
   }
 
@@ -306,10 +333,11 @@ function renderAccordion() {
     Object.keys(sub3Groups).sort(sortMiscLast).forEach(key => {
       const groupId = "s3::" + key;
       const isOpen = browseState.openAccordions.has(groupId) || Object.keys(sub3Groups).length === 1;
-      html += `<div class="accordion-item ${isOpen ? "open" : ""}" data-group="${escapeAttr(groupId)}">
+      const isMisc = key === MISC;
+      html += `<div class="accordion-item ${isOpen ? "open" : ""} ${isMisc ? "misc" : ""}" data-group="${escapeAttr(groupId)}">
           <div class="accordion-header">
-            <span>${escapeHtml(key)}</span>
-            <i class="ti ti-chevron-right chev" style="font-size:14px;" aria-hidden="true"></i>
+            <span class="header-left">${escapeHtml(key)}<span class="badge">${sub3Groups[key].length}</span></span>
+            <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
           </div>
           <div class="accordion-body">${renderCardsOrSub4(sub3Groups[key], groupId)}</div>
         </div>`;
@@ -344,10 +372,11 @@ function renderCardsOrSub4(items, parentGroupId) {
   Object.keys(sub4Groups).sort(sortMiscLast).forEach(key => {
     const groupId = parentGroupId + "::s4::" + key;
     const isOpen = browseState.openAccordions.has(groupId) || Object.keys(sub4Groups).length === 1;
-    html += `<div class="accordion-item ${isOpen ? "open" : ""}" data-group="${escapeAttr(groupId)}" style="margin-left:0;">
+    const isMisc = key === MISC;
+    html += `<div class="accordion-item ${isOpen ? "open" : ""} ${isMisc ? "misc" : ""}" data-group="${escapeAttr(groupId)}" style="margin-left:0;">
         <div class="accordion-header">
-          <span>${escapeHtml(key)}</span>
-          <i class="ti ti-chevron-right chev" style="font-size:14px;" aria-hidden="true"></i>
+          <span class="header-left">${escapeHtml(key)}<span class="badge">${sub4Groups[key].length}</span></span>
+          <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
         </div>
         <div class="accordion-body">${renderCardGrid(sub4Groups[key])}</div>
       </div>`;
@@ -360,9 +389,9 @@ function renderCardGrid(items) {
 }
 
 function cardHtml(i) {
-  const icon = ICON_MAP[i.ext] || { label: i.ext.slice(0,3).toUpperCase(), color: "#337077" };
+  const icon = ICON_MAP[i.ext] || ICON_DEFAULT;
   return `<a class="card" href="${escapeAttr(i.url)}" target="_blank" rel="noopener">
-      <div class="card-icon" style="background:${icon.color}">${icon.label}</div>
+      <div class="card-icon" style="background:${icon.bg}; color:${icon.color}"><i class="ti ${icon.icon}" aria-hidden="true"></i></div>
       <div class="card-body">
         <div class="card-title">${escapeHtml(i.title)}</div>
         <div class="card-type">${i.ext}</div>
