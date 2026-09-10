@@ -158,6 +158,10 @@ h1 { font-size: 26px; font-weight: 600; margin: 0 0 4px 0; text-align: left; }
   overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .card-type { font-size: 11.5px; color: var(--ocean); text-transform: uppercase; letter-spacing: 0.3px; }
+.card-description {
+  font-size: 12.5px; color: var(--quantum); margin-top: 4px;
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
 
 .empty-state { text-align: left; padding: 60px 20px; color: var(--quantum); }
 .empty-state .big { font-size: 16px; font-weight: 600; color: var(--carbon); margin-bottom: 6px; }

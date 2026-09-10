@@ -8,8 +8,13 @@ const CONFIG = {
   listId: "352b483d-47f9-4726-9afb-1b40008e6204",
   columns: {
     title: "Title",
+    displayName: "DisplayName",     // ⚠ VERIFY: check console log after reload
+    description: "Description",     // ⚠ VERIFY
     section: "field_2",
     subsection: "field_6",
+    subsection2: "Subsection2",     // ⚠ VERIFY
+    subsection3: "Subsection3",     // ⚠ VERIFY
+    subsection4: "Subsection4",     // ⚠ VERIFY
     fileExtension: "field_4",
     linkUrl: "field_5",
     tags: "Tags"
@@ -113,11 +118,20 @@ async function loadItems() {
       const f = item.fields || {};
       const rawLink = f[c.linkUrl];
       const link = (rawLink && typeof rawLink === "object") ? rawLink.Url : rawLink;
+
+      const subsectionParts = [
+        f[c.subsection],
+        f[c.subsection2],
+        f[c.subsection3],
+        f[c.subsection4]
+      ].filter(part => part && String(part).trim().length > 0);
+
       return {
         id: item.id,
-        title: f[c.title] || "Untitled",
+        title: f[c.displayName] || f[c.title] || "Untitled",
+        description: f[c.description] || "",
         section: f[c.section] || "Uncategorized",
-        subsection: f[c.subsection] || "",
+        subsection: subsectionParts.join(" > "),
         ext: (f[c.fileExtension] || "link").toLowerCase(),
         url: link || "#",
         tags: f[c.tags] || ""
@@ -188,7 +202,8 @@ function currentFilters() {
     section: document.getElementById("filterSection").value,
     type: document.getElementById("filterType").value,
     subsection: document.getElementById("filterSubsection").value.trim().toLowerCase(),
-    tags: document.getElementById("filterTags").value.trim().toLowerCase()
+    tags: document.getElementById("filterTags").value.trim().toLowerCase(),
+    description: document.getElementById("filterDescription").value.trim().toLowerCase()
   };
 }
 
@@ -199,8 +214,9 @@ function render() {
     if (f.type && i.ext !== f.type) return false;
     if (f.subsection && !i.subsection.toLowerCase().includes(f.subsection)) return false;
     if (f.tags && !i.tags.toLowerCase().includes(f.tags)) return false;
+    if (f.description && !i.description.toLowerCase().includes(f.description)) return false;
     if (f.q) {
-      const hay = `${i.title} ${i.section} ${i.subsection} ${i.tags}`.toLowerCase();
+      const hay = `${i.title} ${i.section} ${i.subsection} ${i.tags} ${i.description}`.toLowerCase();
       if (!hay.includes(f.q)) return false;
     }
     return true;
@@ -238,6 +254,7 @@ function render() {
           <div class="card-body">
             <div class="card-title">${escapeHtml(i.title)}</div>
             <div class="card-type">${i.ext}</div>
+            ${i.description ? `<div class="card-description">${escapeHtml(i.description)}</div>` : ""}
           </div>
         </a>`;
     });
@@ -256,6 +273,7 @@ document.getElementById("filterSection").addEventListener("change", render);
 document.getElementById("filterType").addEventListener("change", render);
 document.getElementById("filterSubsection").addEventListener("input", render);
 document.getElementById("filterTags").addEventListener("input", render);
+document.getElementById("filterDescription").addEventListener("input", render);
 
 document.getElementById("advancedToggle").addEventListener("click", (e) => {
   const panel = document.getElementById("advancedPanel");
@@ -268,6 +286,7 @@ document.getElementById("clearFilters").addEventListener("click", () => {
   document.getElementById("filterType").value = "";
   document.getElementById("filterSubsection").value = "";
   document.getElementById("filterTags").value = "";
+  document.getElementById("filterDescription").value = "";
   document.getElementById("searchInput").value = "";
   activeSection = "";
   document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
