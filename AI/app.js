@@ -8,16 +8,16 @@ const CONFIG = {
   listId: "352b483d-47f9-4726-9afb-1b40008e6204",
   columns: {
     title: "Title",
-    displayName: "DisplayName",     // ⚠ VERIFY: check console log after reload
-    description: "Description",     // ⚠ VERIFY
+    displayName: "DisplayName",     // confirmed
+    description: "Description",     // confirmed
     section: "field_2",
-    subsection: "field_6",
-    subsection2: "Subsection2",     // ⚠ VERIFY
-    subsection3: "Subsection3",     // ⚠ VERIFY
-    subsection4: "Subsection4",     // ⚠ VERIFY
+    subsection: "field_3",          // confirmed
+    subsection2: "Subsection2",     // confirmed
+    subsection3: "Subsection3",     // confirmed
+    subsection4: "Subsection4",     // confirmed
     fileExtension: "field_4",
     linkUrl: "field_5",
-    tags: "Tags"
+    tags: "field_6"                 // confirmed
   }
 };
 /* ========================================================= */
