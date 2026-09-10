@@ -1,5 +1,5 @@
 /* =========================================================
-   CONFIG — update field names here as the list structure changes
+   CONFIG — confirmed field mappings
    ========================================================= */
 const CONFIG = {
   clientId: "c4556a8a-fa5e-4783-97d0-65519d6abe5d",
@@ -8,21 +8,22 @@ const CONFIG = {
   listId: "352b483d-47f9-4726-9afb-1b40008e6204",
   columns: {
     title: "Title",
-    displayName: "DisplayName",     // confirmed
-    description: "Description",     // confirmed
+    displayName: "DisplayName",
+    description: "Description",
     section: "field_2",
-    subsection: "field_3",          // confirmed
-    subsection2: "Subsection2",     // confirmed
-    subsection3: "Subsection3",     // confirmed
-    subsection4: "Subsection4",     // confirmed
+    subsection: "field_3",
+    subsection2: "Subsection2",
+    subsection3: "Subsection3",
+    subsection4: "Subsection4",
     fileExtension: "field_4",
     linkUrl: "field_5",
-    tags: "field_6"                 // confirmed
+    tags: "field_6"
   }
 };
 /* ========================================================= */
 
 const GRAPH_SCOPES = ["Sites.Read.All"];
+const MISC = "Miscellaneous";
 
 const msalConfig = {
   auth: {
@@ -46,7 +47,14 @@ const ICON_MAP = {
 };
 
 let allItems = [];
-let activeSection = "";
+
+/* State for the browse (drill-down) view */
+const browseState = {
+  section: null,
+  sub1: null,   // selected left-panel value (bucketed, or null = nothing selected)
+  sub2: null,   // selected right-panel value (bucketed, or null)
+  openAccordions: new Set()
+};
 
 /* ---- Auth ---- */
 async function signIn() {
@@ -119,19 +127,20 @@ async function loadItems() {
       const rawLink = f[c.linkUrl];
       const link = (rawLink && typeof rawLink === "object") ? rawLink.Url : rawLink;
 
-      const subsectionParts = [
-        f[c.subsection],
-        f[c.subsection2],
-        f[c.subsection3],
-        f[c.subsection4]
-      ].filter(part => part && String(part).trim().length > 0);
+      const rawSub1 = (f[c.subsection] || "").toString().trim();
+      const rawSub2 = (f[c.subsection2] || "").toString().trim();
+      const rawSub3 = (f[c.subsection3] || "").toString().trim();
+      const rawSub4 = (f[c.subsection4] || "").toString().trim();
+
+      const breadcrumbParts = [rawSub1, rawSub2, rawSub3, rawSub4].filter(Boolean);
 
       return {
         id: item.id,
         title: f[c.displayName] || f[c.title] || "Untitled",
         description: f[c.description] || "",
         section: f[c.section] || "Uncategorized",
-        subsection: subsectionParts.join(" > "),
+        rawSub1, rawSub2, rawSub3, rawSub4,
+        subsectionPath: breadcrumbParts.join(" > "), // used by the flat Search tab
         ext: (f[c.fileExtension] || "link").toLowerCase(),
         url: link || "#",
         tags: f[c.tags] || ""
@@ -139,9 +148,11 @@ async function loadItems() {
     });
 
     banner.style.display = "none";
-    buildNav();
+    buildTabs();
     populateFilterOptions();
-    render();
+
+    const firstSection = [...new Set(allItems.map(i => i.section))].sort()[0];
+    if (firstSection) selectSection(firstSection);
   } catch (err) {
     banner.style.display = "none";
     showError(`Could not load the catalog from Microsoft Graph. (${err.message})`);
@@ -154,36 +165,229 @@ function showError(msg) {
   b.classList.add("show");
 }
 
-/* ---- Nav ---- */
-function buildNav() {
+function bucket(val) {
+  return val && val.trim() ? val.trim() : MISC;
+}
+
+/* ---- Top tabs ---- */
+function buildTabs() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
-  const navList = document.getElementById("navList");
-  const allCount = allItems.length;
+  const tabsEl = document.getElementById("sectionTabs");
+  tabsEl.innerHTML = sections.map(s =>
+    `<div class="tab" data-section="${escapeAttr(s)}">${escapeHtml(s)}</div>`
+  ).join("") + `<div class="tab search-tab" data-section="__search__"><i class="ti ti-search" style="font-size:14px;" aria-hidden="true"></i>Search</div>`;
 
-  let html = `<div class="nav-item active" data-section="">
-      <span>All items</span><span class="nav-count">${allCount}</span>
-    </div>`;
-
-  sections.forEach(s => {
-    const count = allItems.filter(i => i.section === s).length;
-    html += `<div class="nav-item" data-section="${escapeAttr(s)}">
-        <span>${escapeHtml(s)}</span><span class="nav-count">${count}</span>
-      </div>`;
-  });
-  navList.innerHTML = html;
-
-  navList.querySelectorAll(".nav-item").forEach(el => {
+  tabsEl.querySelectorAll(".tab").forEach(el => {
     el.addEventListener("click", () => {
-      activeSection = el.dataset.section;
-      navList.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      const sec = el.dataset.section;
+      tabsEl.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
       el.classList.add("active");
-      document.getElementById("filterSection").value = activeSection;
-      document.getElementById("sectionHeading").textContent = activeSection || "All Sections";
-      render();
+      if (sec === "__search__") {
+        showSearchView();
+      } else {
+        showBrowseView();
+        selectSection(sec);
+      }
     });
   });
 }
 
+function showSearchView() {
+  document.getElementById("browseView").style.display = "none";
+  document.getElementById("searchView").style.display = "block";
+  renderSearch();
+}
+
+function showBrowseView() {
+  document.getElementById("searchView").style.display = "none";
+  document.getElementById("browseView").style.display = "flex";
+}
+
+/* ---- Browse: section selection (full reset) ---- */
+function selectSection(section) {
+  browseState.section = section;
+  browseState.sub1 = null;
+  browseState.sub2 = null;
+  browseState.openAccordions = new Set();
+
+  document.querySelectorAll("#sectionTabs .tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.section === section);
+  });
+
+  renderPanel1();
+}
+
+/* ---- Panel 1: Subsection (left) ---- */
+function renderPanel1() {
+  const items = allItems.filter(i => i.section === browseState.section);
+  const values = [...new Set(items.map(i => bucket(i.rawSub1)))].sort(sortMiscLast);
+
+  if (browseState.sub1 === null) browseState.sub1 = values[0] || null;
+
+  const panel = document.getElementById("panelSub1");
+  let html = `<div class="panel-label">Subsection</div>`;
+  values.forEach(v => {
+    const count = items.filter(i => bucket(i.rawSub1) === v).length;
+    html += `<div class="panel-item ${v === browseState.sub1 ? "active" : ""}" data-val="${escapeAttr(v)}">
+      ${escapeHtml(v)}<span class="count">${count}</span>
+    </div>`;
+  });
+  panel.innerHTML = html || `<div class="panel-empty">No items</div>`;
+
+  panel.querySelectorAll(".panel-item").forEach(el => {
+    el.addEventListener("click", () => {
+      browseState.sub1 = el.dataset.val;
+      browseState.sub2 = null;
+      browseState.openAccordions = new Set();
+      renderPanel1();
+    });
+  });
+
+  renderPanel2();
+}
+
+/* ---- Panel 2: Subsection2 (right) ---- */
+function renderPanel2() {
+  const items = allItems.filter(i =>
+    i.section === browseState.section && bucket(i.rawSub1) === browseState.sub1
+  );
+  const values = [...new Set(items.map(i => bucket(i.rawSub2)))].sort(sortMiscLast);
+
+  if (browseState.sub2 === null || !values.includes(browseState.sub2)) {
+    browseState.sub2 = values[0] || null;
+  }
+
+  const panel = document.getElementById("panelSub2");
+  let html = `<div class="panel-label">Subsection2</div>`;
+  values.forEach(v => {
+    const count = items.filter(i => bucket(i.rawSub2) === v).length;
+    html += `<div class="panel-item ${v === browseState.sub2 ? "active" : ""}" data-val="${escapeAttr(v)}">
+      ${escapeHtml(v)}<span class="count">${count}</span>
+    </div>`;
+  });
+  panel.innerHTML = html || `<div class="panel-empty">No items</div>`;
+
+  panel.querySelectorAll(".panel-item").forEach(el => {
+    el.addEventListener("click", () => {
+      browseState.sub2 = el.dataset.val;
+      browseState.openAccordions = new Set();
+      renderAccordion();
+    });
+  });
+
+  renderAccordion();
+}
+
+/* ---- Main content: Subsection3 / Subsection4 accordion, collapsing empty tiers ---- */
+function renderAccordion() {
+  const main = document.getElementById("accordionMain");
+  const scoped = allItems.filter(i =>
+    i.section === browseState.section &&
+    bucket(i.rawSub1) === browseState.sub1 &&
+    bucket(i.rawSub2) === browseState.sub2
+  );
+
+  const pathLabel = `${browseState.section} <i class="ti ti-chevron-right" style="font-size:11px;vertical-align:-1px;" aria-hidden="true"></i> ${escapeHtml(browseState.sub1 || "")} <i class="ti ti-chevron-right" style="font-size:11px;vertical-align:-1px;" aria-hidden="true"></i> ${escapeHtml(browseState.sub2 || "")}`;
+
+  if (scoped.length === 0) {
+    main.innerHTML = `<div class="accordion-path">${pathLabel}</div>
+      <div class="empty-state"><div class="big">No items here</div>Try a different subsection.</div>`;
+    return;
+  }
+
+  const hasAnySub3 = scoped.some(i => i.rawSub3);
+
+  let html = `<div class="accordion-path">${pathLabel}</div>`;
+
+  if (!hasAnySub3) {
+    html += renderCardsOrSub4(scoped, "root");
+  } else {
+    const sub3Groups = groupBy(scoped, i => bucket(i.rawSub3));
+    Object.keys(sub3Groups).sort(sortMiscLast).forEach(key => {
+      const groupId = "s3::" + key;
+      const isOpen = browseState.openAccordions.has(groupId) || Object.keys(sub3Groups).length === 1;
+      html += `<div class="accordion-item ${isOpen ? "open" : ""}" data-group="${escapeAttr(groupId)}">
+          <div class="accordion-header">
+            <span>${escapeHtml(key)}</span>
+            <i class="ti ti-chevron-right chev" style="font-size:14px;" aria-hidden="true"></i>
+          </div>
+          <div class="accordion-body">${renderCardsOrSub4(sub3Groups[key], groupId)}</div>
+        </div>`;
+    });
+  }
+
+  main.innerHTML = html;
+
+  main.querySelectorAll(".accordion-item > .accordion-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const item = header.parentElement;
+      const groupId = item.dataset.group;
+      if (browseState.openAccordions.has(groupId)) {
+        browseState.openAccordions.delete(groupId);
+      } else {
+        browseState.openAccordions.add(groupId);
+      }
+      item.classList.toggle("open");
+    });
+  });
+
+  main.querySelectorAll(".accordion-item[data-group^='s4::'] > .accordion-header, .nested-s4 .accordion-header").forEach(() => {});
+}
+
+function renderCardsOrSub4(items, parentGroupId) {
+  const hasAnySub4 = items.some(i => i.rawSub4);
+  if (!hasAnySub4) {
+    return renderCardGrid(items);
+  }
+  const sub4Groups = groupBy(items, i => bucket(i.rawSub4));
+  let html = "";
+  Object.keys(sub4Groups).sort(sortMiscLast).forEach(key => {
+    const groupId = parentGroupId + "::s4::" + key;
+    const isOpen = browseState.openAccordions.has(groupId) || Object.keys(sub4Groups).length === 1;
+    html += `<div class="accordion-item ${isOpen ? "open" : ""}" data-group="${escapeAttr(groupId)}" style="margin-left:0;">
+        <div class="accordion-header">
+          <span>${escapeHtml(key)}</span>
+          <i class="ti ti-chevron-right chev" style="font-size:14px;" aria-hidden="true"></i>
+        </div>
+        <div class="accordion-body">${renderCardGrid(sub4Groups[key])}</div>
+      </div>`;
+  });
+  return html;
+}
+
+function renderCardGrid(items) {
+  return `<div class="card-grid">${items.map(cardHtml).join("")}</div>`;
+}
+
+function cardHtml(i) {
+  const icon = ICON_MAP[i.ext] || { label: i.ext.slice(0,3).toUpperCase(), color: "#337077" };
+  return `<a class="card" href="${escapeAttr(i.url)}" target="_blank" rel="noopener">
+      <div class="card-icon" style="background:${icon.color}">${icon.label}</div>
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(i.title)}</div>
+        <div class="card-type">${i.ext}</div>
+        ${i.description ? `<div class="card-description">${escapeHtml(i.description)}</div>` : ""}
+      </div>
+    </a>`;
+}
+
+function groupBy(arr, fn) {
+  const out = {};
+  arr.forEach(item => {
+    const k = fn(item);
+    if (!out[k]) out[k] = [];
+    out[k].push(item);
+  });
+  return out;
+}
+
+function sortMiscLast(a, b) {
+  if (a === MISC) return 1;
+  if (b === MISC) return -1;
+  return a.localeCompare(b);
+}
+
+/* ---- Search view (flat, all sections) ---- */
 function populateFilterOptions() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
   const types = [...new Set(allItems.map(i => i.ext))].sort();
@@ -195,7 +399,6 @@ function populateFilterOptions() {
   types.forEach(t => typeSel.insertAdjacentHTML("beforeend", `<option value="${t}">${t.toUpperCase()}</option>`));
 }
 
-/* ---- Search / filter / render ---- */
 function currentFilters() {
   return {
     q: document.getElementById("searchInput").value.trim().toLowerCase(),
@@ -207,16 +410,16 @@ function currentFilters() {
   };
 }
 
-function render() {
+function renderSearch() {
   const f = currentFilters();
   let items = allItems.filter(i => {
     if (f.section && i.section !== f.section) return false;
     if (f.type && i.ext !== f.type) return false;
-    if (f.subsection && !i.subsection.toLowerCase().includes(f.subsection)) return false;
+    if (f.subsection && !i.subsectionPath.toLowerCase().includes(f.subsection)) return false;
     if (f.tags && !i.tags.toLowerCase().includes(f.tags)) return false;
     if (f.description && !i.description.toLowerCase().includes(f.description)) return false;
     if (f.q) {
-      const hay = `${i.title} ${i.section} ${i.subsection} ${i.tags} ${i.description}`.toLowerCase();
+      const hay = `${i.title} ${i.section} ${i.subsectionPath} ${i.tags} ${i.description}`.toLowerCase();
       if (!hay.includes(f.q)) return false;
     }
     return true;
@@ -225,7 +428,7 @@ function render() {
   document.getElementById("resultMeta").innerHTML =
     `Showing <b>${items.length}</b> of <b>${allItems.length}</b> items`;
 
-  const container = document.getElementById("results");
+  const container = document.getElementById("searchResults");
   if (items.length === 0) {
     container.innerHTML = `<div class="empty-state">
         <div class="big">No matches</div>
@@ -236,7 +439,7 @@ function render() {
 
   const groups = {};
   items.forEach(i => {
-    const key = i.subsection || "General";
+    const key = i.subsectionPath || "General";
     const groupKey = (f.section ? "" : i.section + " — ") + key;
     if (!groups[groupKey]) groups[groupKey] = [];
     groups[groupKey].push(i);
@@ -246,19 +449,8 @@ function render() {
   Object.keys(groups).sort().forEach(groupName => {
     html += `<div class="subsection-group">
         <div class="subsection-title">${escapeHtml(groupName)}</div>
-        <div class="card-grid">`;
-    groups[groupName].forEach(i => {
-      const icon = ICON_MAP[i.ext] || { label: i.ext.slice(0,3).toUpperCase(), color: "#337077" };
-      html += `<a class="card" href="${escapeAttr(i.url)}" target="_blank" rel="noopener">
-          <div class="card-icon" style="background:${icon.color}">${icon.label}</div>
-          <div class="card-body">
-            <div class="card-title">${escapeHtml(i.title)}</div>
-            <div class="card-type">${i.ext}</div>
-            ${i.description ? `<div class="card-description">${escapeHtml(i.description)}</div>` : ""}
-          </div>
-        </a>`;
-    });
-    html += `</div></div>`;
+        <div class="card-grid">${groups[groupName].map(cardHtml).join("")}</div>
+      </div>`;
   });
   container.innerHTML = html;
 }
@@ -268,12 +460,12 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) { return escapeHtml(s); }
 
-document.getElementById("searchInput").addEventListener("input", render);
-document.getElementById("filterSection").addEventListener("change", render);
-document.getElementById("filterType").addEventListener("change", render);
-document.getElementById("filterSubsection").addEventListener("input", render);
-document.getElementById("filterTags").addEventListener("input", render);
-document.getElementById("filterDescription").addEventListener("input", render);
+document.getElementById("searchInput").addEventListener("input", renderSearch);
+document.getElementById("filterSection").addEventListener("change", renderSearch);
+document.getElementById("filterType").addEventListener("change", renderSearch);
+document.getElementById("filterSubsection").addEventListener("input", renderSearch);
+document.getElementById("filterTags").addEventListener("input", renderSearch);
+document.getElementById("filterDescription").addEventListener("input", renderSearch);
 
 document.getElementById("advancedToggle").addEventListener("click", (e) => {
   const panel = document.getElementById("advancedPanel");
@@ -288,11 +480,7 @@ document.getElementById("clearFilters").addEventListener("click", () => {
   document.getElementById("filterTags").value = "";
   document.getElementById("filterDescription").value = "";
   document.getElementById("searchInput").value = "";
-  activeSection = "";
-  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-  document.querySelector('.nav-item[data-section=""]').classList.add("active");
-  document.getElementById("sectionHeading").textContent = "All Sections";
-  render();
+  renderSearch();
 });
 
 /* ---- On load: try silent SSO first ---- */
