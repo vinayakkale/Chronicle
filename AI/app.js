@@ -383,7 +383,8 @@ function renderAccordion() {
   } else {
     const sub3Groups = groupBy(scoped, i => bucket(i.rawSub3));
     const keys = Object.keys(sub3Groups).sort(sortMiscLast);
-    html += `<div class="accordion-columns">`;
+    const useColumns = keys.length > 1;
+    if (useColumns) html += `<div class="accordion-columns">`;
     keys.forEach(key => {
       const groupId = basePath + "::s3::" + key;
       const isOpen = browseState.openAccordions.has(groupId) || keys.length === 1;
@@ -396,7 +397,7 @@ function renderAccordion() {
           <div class="accordion-body">${renderCardsOrSub4(sub3Groups[key], groupId)}</div>
         </div>`;
     });
-    html += `</div>`;
+    if (useColumns) html += `</div>`;
   }
 
   main.innerHTML = html;
@@ -412,7 +413,8 @@ function renderCardsOrSub4(items, parentGroupId) {
   }
   const sub4Groups = groupBy(items, i => bucket(i.rawSub4));
   const keys = Object.keys(sub4Groups).sort(sortMiscLast);
-  let html = `<div class="accordion-columns">`;
+  const useColumns = keys.length > 1;
+  let html = useColumns ? `<div class="accordion-columns">` : "";
   keys.forEach(key => {
     const groupId = parentGroupId + "::s4::" + key;
     const isOpen = browseState.openAccordions.has(groupId) || keys.length === 1;
@@ -425,7 +427,7 @@ function renderCardsOrSub4(items, parentGroupId) {
         <div class="accordion-body">${renderCardGrid(sub4Groups[key], groupId)}</div>
       </div>`;
   });
-  html += `</div>`;
+  if (useColumns) html += `</div>`;
   return html;
 }
 
