@@ -66,6 +66,7 @@ function sectionIcon(name) {
 
 let allItems = [];
 const pageState = new Map(); // pagination cursor per grid, keyed by a stable path string
+let hasLoadedOnce = false;
 
 /* State for the browse (drill-down) view */
 const browseState = {
@@ -113,6 +114,17 @@ async function getToken() {
 }
 
 document.getElementById("signInBtn").addEventListener("click", signIn);
+document.getElementById("refreshBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("refreshBtn");
+  btn.disabled = true;
+  btn.classList.add("spinning");
+  try {
+    await loadItems();
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("spinning");
+  }
+});
 
 /* ---- Data loading (Microsoft Graph) ---- */
 async function loadItems() {
@@ -152,6 +164,7 @@ async function loadItems() {
       return {
         id: item.id,
         title: f[c.displayName] || f[c.title] || "Untitled",
+        rawTitle: f[c.title] || "",
         description: f[c.description] || "",
         section: f[c.section] || "Uncategorized",
         rawSub1, rawSub2, rawSub3, rawSub4,
@@ -166,7 +179,22 @@ async function loadItems() {
     if (banner) banner.style.display = "none";
     buildTabs();
     populateFilterOptions();
-    showSearchView(); // land on Search by default
+
+    if (!hasLoadedOnce) {
+      hasLoadedOnce = true;
+      showSearchView();
+    } else if (browseState.section && allItems.some(i => i.section === browseState.section)) {
+      const tabEl = document.querySelector(`#sectionTabs .tab[data-section="${CSS.escape(browseState.section)}"]`);
+      document.querySelectorAll("#sectionTabs .tab").forEach(t => t.classList.remove("active"));
+      if (tabEl) tabEl.classList.add("active");
+      showBrowseView();
+      selectSection(browseState.section);
+    } else {
+      const searchTab = document.querySelector('#sectionTabs .tab[data-section="__search__"]');
+      document.querySelectorAll("#sectionTabs .tab").forEach(t => t.classList.remove("active"));
+      if (searchTab) searchTab.classList.add("active");
+      showSearchView();
+    }
   } catch (err) {
     if (banner) banner.style.display = "none";
     showError(`Could not load the catalog from Microsoft Graph. (${err.message})`);
@@ -374,6 +402,7 @@ function renderAccordion() {
   main.innerHTML = html;
   wireAccordionToggles(main);
   wireLoadMoreButtons(main, renderAccordion);
+  wireCardInteractions(main);
 }
 
 function renderCardsOrSub4(items, parentGroupId) {
@@ -442,14 +471,71 @@ function renderCardGrid(items, pageKey) {
 
 function cardHtml(i) {
   const icon = ICON_MAP[i.ext] || ICON_DEFAULT;
-  return `<a class="card" href="${escapeAttr(i.url)}" target="_blank" rel="noopener">
+  const tagList = (i.tags || "").split(",").map(t => t.trim()).filter(Boolean);
+  const hasDesc = !!(i.description && i.description.trim());
+  const filenameLine = `${i.rawTitle || i.title}.${i.ext}`;
+
+  let descBlock = "";
+  if (hasDesc) {
+    const words = i.description.trim().split(/\s+/);
+    if (words.length <= 10) {
+      descBlock = `<div class="card-description">${escapeHtml(i.description)}</div>`;
+    } else {
+      const truncated = words.slice(0, 10).join(" ");
+      descBlock = `<div class="card-description" data-expanded="false">
+          <span class="desc-text">${escapeHtml(truncated)}…</span>
+          <span class="desc-full" style="display:none;">${escapeHtml(i.description)}</span>
+          <a href="#" class="more-link">More...</a>
+        </div>`;
+    }
+  }
+
+  const tagsBlock = tagList.length
+    ? `<div class="card-tags">${tagList.map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join("")}</div>`
+    : "";
+
+  return `<div class="card" tabindex="0" role="link" aria-label="${escapeAttr(i.title)}" data-url="${escapeAttr(i.url)}">
       <div class="card-icon" style="background:${icon.bg}; color:${icon.color}"><i class="ti ${icon.icon}" aria-hidden="true"></i></div>
       <div class="card-body">
-        <div class="card-title">${escapeHtml(i.title)}</div>
-        <div class="card-type">${escapeHtml(i.ext)}</div>
-        ${i.description ? `<div class="card-description">${escapeHtml(i.description)}</div>` : ""}
+        <div class="card-displayname">${escapeHtml(i.title)}</div>
+        <div class="card-ext">${escapeHtml(i.ext)}</div>
+        ${hasDesc ? `<hr class="card-sep">${descBlock}` : ""}
+        ${tagList.length ? `<hr class="card-sep">${tagsBlock}` : ""}
+        <div class="card-filename">${escapeHtml(filenameLine)}</div>
       </div>
-    </a>`;
+    </div>`;
+}
+
+/* Cards are divs (not anchors) because the "More..." toggle is itself a link nested
+   inside — nested anchors are invalid HTML and would double-fire navigation. */
+function wireCardInteractions(container) {
+  container.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".more-link")) return;
+      window.open(card.dataset.url, "_blank", "noopener");
+    });
+    card.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".more-link")) {
+        e.preventDefault();
+        window.open(card.dataset.url, "_blank", "noopener");
+      }
+    });
+  });
+
+  container.querySelectorAll(".more-link").forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const wrap = link.parentElement;
+      const truncSpan = wrap.querySelector(".desc-text");
+      const fullSpan = wrap.querySelector(".desc-full");
+      const expanded = wrap.dataset.expanded === "true";
+      truncSpan.style.display = expanded ? "inline" : "none";
+      fullSpan.style.display = expanded ? "none" : "inline";
+      link.textContent = expanded ? "More..." : "Less";
+      wrap.dataset.expanded = expanded ? "false" : "true";
+    });
+  });
 }
 
 function groupBy(arr, fn) {
@@ -468,10 +554,17 @@ function populateFilterOptions() {
   const types = [...new Set(allItems.map(i => i.ext))].sort();
 
   const secSel = document.getElementById("filterSection");
-  sections.forEach(s => secSel.insertAdjacentHTML("beforeend", `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`));
-
   const typeSel = document.getElementById("filterType");
-  types.forEach(t => typeSel.insertAdjacentHTML("beforeend", `<option value="${escapeAttr(t)}">${escapeHtml(t.toUpperCase())}</option>`));
+  const prevSection = secSel.value;
+  const prevType = typeSel.value;
+
+  secSel.innerHTML = `<option value="">All sections</option>` +
+    sections.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join("");
+  typeSel.innerHTML = `<option value="">All types</option>` +
+    types.map(t => `<option value="${escapeAttr(t)}">${escapeHtml(t.toUpperCase())}</option>`).join("");
+
+  if (sections.includes(prevSection)) secSel.value = prevSection;
+  if (types.includes(prevType)) typeSel.value = prevType;
 }
 
 function currentFilters() {
@@ -530,6 +623,7 @@ function renderSearch() {
   });
   container.innerHTML = html;
   wireLoadMoreButtons(container, renderSearch);
+  wireCardInteractions(container);
 }
 
 function escapeHtml(s) {
