@@ -25,6 +25,7 @@ const CONFIG = {
 
 const GRAPH_SCOPES = ["Sites.Read.All"];
 const MISC = "Miscellaneous";
+const PAGE_SIZE = 15;
 
 const msalConfig = {
   auth: {
@@ -48,13 +49,29 @@ const ICON_MAP = {
 };
 const ICON_DEFAULT = { icon: "ti-file", bg: "#F1EFE8", color: "#5F5E5A" };
 
+/* Keyword-based icon picker for section tabs — section names are data-driven, not fixed */
+function sectionIcon(name) {
+  const n = (name || "").toLowerCase();
+  if (n.includes("account")) return "ti-briefcase";
+  if (n.includes("compan")) return "ti-building";
+  if (n.includes("servic")) return "ti-settings";
+  if (n.includes("industr")) return "ti-building-factory-2";
+  if (n.includes("fp") || n.includes("financ")) return "ti-chart-line";
+  if (n.includes("sales")) return "ti-chart-bar";
+  if (n.includes("market")) return "ti-speakerphone";
+  if (n.includes("product")) return "ti-box";
+  if (n.includes("partner")) return "ti-users-group";
+  return "ti-folder";
+}
+
 let allItems = [];
+const pageState = new Map(); // pagination cursor per grid, keyed by a stable path string
 
 /* State for the browse (drill-down) view */
 const browseState = {
   section: null,
-  sub1: null,   // selected left-panel value (bucketed, or null = nothing selected)
-  sub2: null,   // selected right-panel value (bucketed, or null)
+  sub1: null,   // null = "All" (no filter applied)
+  sub2: null,   // null = "All"
   openAccordions: new Set()
 };
 
@@ -96,15 +113,11 @@ async function getToken() {
 }
 
 document.getElementById("signInBtn").addEventListener("click", signIn);
-document.getElementById("signOutBtn").addEventListener("click", async () => {
-  await msalReady;
-  msalInstance.logoutRedirect();
-});
 
 /* ---- Data loading (Microsoft Graph) ---- */
 async function loadItems() {
   const banner = document.getElementById("loadingBanner");
-  banner.style.display = "block";
+  if (banner) banner.style.display = "block";
   try {
     const token = await getToken();
     const c = CONFIG.columns;
@@ -142,7 +155,7 @@ async function loadItems() {
         description: f[c.description] || "",
         section: f[c.section] || "Uncategorized",
         rawSub1, rawSub2, rawSub3, rawSub4,
-        subsectionPath: breadcrumbParts.join(" > "), // used by the flat Search tab
+        subsectionPath: breadcrumbParts.join(" > "),
         ext: (f[c.fileExtension] || "link").toLowerCase(),
         url: link || "#",
         tags: f[c.tags] || "",
@@ -150,14 +163,12 @@ async function loadItems() {
       };
     });
 
-    banner.style.display = "none";
+    if (banner) banner.style.display = "none";
     buildTabs();
     populateFilterOptions();
-
-    const firstSection = [...new Set(allItems.map(i => i.section))].sort()[0];
-    if (firstSection) selectSection(firstSection);
+    showSearchView(); // land on Search by default
   } catch (err) {
-    banner.style.display = "none";
+    if (banner) banner.style.display = "none";
     showError(`Could not load the catalog from Microsoft Graph. (${err.message})`);
   }
 }
@@ -172,13 +183,24 @@ function bucket(val) {
   return val && val.trim() ? val.trim() : MISC;
 }
 
+function sortMiscLast(a, b) {
+  if (a === MISC) return 1;
+  if (b === MISC) return -1;
+  return a.localeCompare(b);
+}
+
+/* Sort alphabetically, clustering by file type */
+function sortItems(items) {
+  return [...items].sort((a, b) => a.ext.localeCompare(b.ext) || a.title.localeCompare(b.title));
+}
+
 /* ---- Top tabs ---- */
 function buildTabs() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
   const tabsEl = document.getElementById("sectionTabs");
   tabsEl.innerHTML = sections.map(s =>
-    `<div class="tab" data-section="${escapeAttr(s)}">${escapeHtml(s)}</div>`
-  ).join("") + `<div class="tab search-tab" data-section="__search__"><i class="ti ti-search" style="font-size:14px;" aria-hidden="true"></i>Search</div>`;
+    `<div class="tab" data-section="${escapeAttr(s)}"><i class="ti ${sectionIcon(s)}" aria-hidden="true"></i>${escapeHtml(s)}</div>`
+  ).join("") + `<div class="tab search-tab active" data-section="__search__"><i class="ti ti-search" aria-hidden="true"></i>Search</div>`;
 
   tabsEl.querySelectorAll(".tab").forEach(el => {
     el.addEventListener("click", () => {
@@ -207,16 +229,12 @@ function showBrowseView() {
   document.getElementById("browseView").style.display = "flex";
 }
 
-/* ---- Browse: section selection (full reset) ---- */
+/* ---- Browse: section selection (full reset, default = All) ---- */
 function selectSection(section) {
   browseState.section = section;
   browseState.sub1 = null;
   browseState.sub2 = null;
   browseState.openAccordions = new Set();
-
-  document.querySelectorAll("#sectionTabs .tab").forEach(t => {
-    t.classList.toggle("active", t.dataset.section === section);
-  });
 
   renderStatsStrip(section);
   renderPanel1();
@@ -237,33 +255,35 @@ function renderStatsStrip(section) {
   if (mostRecent) {
     const d = new Date(mostRecent.modified);
     const dateStr = isNaN(d) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-    html += `<div class="stat-chip"><i class="ti ti-clock" aria-hidden="true"></i><span class="label">Updated ${dateStr} —</span><b style="font-size:12.5px;">${escapeHtml(mostRecent.title)}</b></div>`;
+    html += `<div class="stat-chip"><i class="ti ti-clock" aria-hidden="true"></i><span class="label">Updated ${dateStr} —</span>
+      <a href="${escapeAttr(mostRecent.url)}" target="_blank" rel="noopener">${escapeHtml(mostRecent.title)}</a></div>`;
   }
 
   strip.innerHTML = html;
   strip.style.display = "flex";
 }
 
-/* ---- Panel 1: Subsection (left) ---- */
+/* ---- Panel 1: left panel, label = selected Section, includes "All" ---- */
 function renderPanel1() {
   const items = allItems.filter(i => i.section === browseState.section);
   const values = [...new Set(items.map(i => bucket(i.rawSub1)))].sort(sortMiscLast);
 
-  if (browseState.sub1 === null) browseState.sub1 = values[0] || null;
-
   const panel = document.getElementById("panelSub1");
-  let html = `<div class="panel-label">Subsection</div>`;
+  let html = `<div class="panel-label">${escapeHtml(browseState.section)}</div>`;
+  html += `<div class="panel-item ${browseState.sub1 === null ? "active" : ""}" data-val="">
+      <i class="ti ti-layout-grid" aria-hidden="true"></i>All<span class="count">${items.length}</span>
+    </div>`;
   values.forEach(v => {
     const count = items.filter(i => bucket(i.rawSub1) === v).length;
     html += `<div class="panel-item ${v === browseState.sub1 ? "active" : ""} ${v === MISC ? "misc" : ""}" data-val="${escapeAttr(v)}">
-      ${escapeHtml(v)}<span class="count">${count}</span>
+      <i class="ti ti-folder" aria-hidden="true"></i>${escapeHtml(v)}<span class="count">${count}</span>
     </div>`;
   });
-  panel.innerHTML = html || `<div class="panel-empty">No items</div>`;
+  panel.innerHTML = html;
 
   panel.querySelectorAll(".panel-item").forEach(el => {
     el.addEventListener("click", () => {
-      browseState.sub1 = el.dataset.val;
+      browseState.sub1 = el.dataset.val || null;
       browseState.sub2 = null;
       browseState.openAccordions = new Set();
       renderPanel1();
@@ -273,30 +293,30 @@ function renderPanel1() {
   renderPanel2();
 }
 
-/* ---- Panel 2: Subsection2 (right) ---- */
+/* ---- Panel 2: right panel, label = "Artifact Type", includes "All" ---- */
 function renderPanel2() {
   const items = allItems.filter(i =>
-    i.section === browseState.section && bucket(i.rawSub1) === browseState.sub1
+    i.section === browseState.section &&
+    (browseState.sub1 === null || bucket(i.rawSub1) === browseState.sub1)
   );
   const values = [...new Set(items.map(i => bucket(i.rawSub2)))].sort(sortMiscLast);
 
-  if (browseState.sub2 === null || !values.includes(browseState.sub2)) {
-    browseState.sub2 = values[0] || null;
-  }
-
   const panel = document.getElementById("panelSub2");
-  let html = `<div class="panel-label">Subsection2</div>`;
+  let html = `<div class="panel-label">Artifact Type</div>`;
+  html += `<div class="panel-item ${browseState.sub2 === null ? "active" : ""}" data-val="">
+      <i class="ti ti-layout-grid" aria-hidden="true"></i>All<span class="count">${items.length}</span>
+    </div>`;
   values.forEach(v => {
     const count = items.filter(i => bucket(i.rawSub2) === v).length;
     html += `<div class="panel-item ${v === browseState.sub2 ? "active" : ""} ${v === MISC ? "misc" : ""}" data-val="${escapeAttr(v)}">
-      ${escapeHtml(v)}<span class="count">${count}</span>
+      <i class="ti ti-tag" aria-hidden="true"></i>${escapeHtml(v)}<span class="count">${count}</span>
     </div>`;
   });
-  panel.innerHTML = html || `<div class="panel-empty">No items</div>`;
+  panel.innerHTML = html;
 
   panel.querySelectorAll(".panel-item").forEach(el => {
     el.addEventListener("click", () => {
-      browseState.sub2 = el.dataset.val;
+      browseState.sub2 = el.dataset.val || null;
       browseState.openAccordions = new Set();
       renderAccordion();
     });
@@ -310,11 +330,14 @@ function renderAccordion() {
   const main = document.getElementById("accordionMain");
   const scoped = allItems.filter(i =>
     i.section === browseState.section &&
-    bucket(i.rawSub1) === browseState.sub1 &&
-    bucket(i.rawSub2) === browseState.sub2
+    (browseState.sub1 === null || bucket(i.rawSub1) === browseState.sub1) &&
+    (browseState.sub2 === null || bucket(i.rawSub2) === browseState.sub2)
   );
 
-  const pathLabel = `${browseState.section} <i class="ti ti-chevron-right" style="font-size:11px;vertical-align:-1px;" aria-hidden="true"></i> ${escapeHtml(browseState.sub1 || "")} <i class="ti ti-chevron-right" style="font-size:11px;vertical-align:-1px;" aria-hidden="true"></i> ${escapeHtml(browseState.sub2 || "")}`;
+  const pathParts = [browseState.section];
+  if (browseState.sub1) pathParts.push(browseState.sub1);
+  if (browseState.sub2) pathParts.push(browseState.sub2);
+  const pathLabel = pathParts.map(escapeHtml).join(' <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i> ');
 
   if (scoped.length === 0) {
     main.innerHTML = `<div class="accordion-path">${pathLabel}</div>
@@ -322,31 +345,63 @@ function renderAccordion() {
     return;
   }
 
+  const basePath = `browse::${browseState.section}::${browseState.sub1 || "all"}::${browseState.sub2 || "all"}`;
   const hasAnySub3 = scoped.some(i => i.rawSub3);
 
   let html = `<div class="accordion-path">${pathLabel}</div>`;
 
   if (!hasAnySub3) {
-    html += renderCardsOrSub4(scoped, "root");
+    html += renderCardsOrSub4(scoped, basePath + "::root");
   } else {
     const sub3Groups = groupBy(scoped, i => bucket(i.rawSub3));
-    Object.keys(sub3Groups).sort(sortMiscLast).forEach(key => {
-      const groupId = "s3::" + key;
-      const isOpen = browseState.openAccordions.has(groupId) || Object.keys(sub3Groups).length === 1;
+    const keys = Object.keys(sub3Groups).sort(sortMiscLast);
+    html += `<div class="accordion-columns">`;
+    keys.forEach(key => {
+      const groupId = basePath + "::s3::" + key;
+      const isOpen = browseState.openAccordions.has(groupId) || keys.length === 1;
       const isMisc = key === MISC;
       html += `<div class="accordion-item ${isOpen ? "open" : ""} ${isMisc ? "misc" : ""}" data-group="${escapeAttr(groupId)}">
           <div class="accordion-header">
-            <span class="header-left">${escapeHtml(key)}<span class="badge">${sub3Groups[key].length}</span></span>
+            <span class="header-left"><i class="ti ti-folder-open" aria-hidden="true" style="margin-right:8px;"></i>${escapeHtml(key)}<span class="badge">${sub3Groups[key].length}</span></span>
             <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
           </div>
           <div class="accordion-body">${renderCardsOrSub4(sub3Groups[key], groupId)}</div>
         </div>`;
     });
+    html += `</div>`;
   }
 
   main.innerHTML = html;
+  wireAccordionToggles(main);
+  wireLoadMoreButtons(main, renderAccordion);
+}
 
-  main.querySelectorAll(".accordion-item > .accordion-header").forEach(header => {
+function renderCardsOrSub4(items, parentGroupId) {
+  const hasAnySub4 = items.some(i => i.rawSub4);
+  if (!hasAnySub4) {
+    return renderCardGrid(items, parentGroupId);
+  }
+  const sub4Groups = groupBy(items, i => bucket(i.rawSub4));
+  const keys = Object.keys(sub4Groups).sort(sortMiscLast);
+  let html = `<div class="accordion-columns">`;
+  keys.forEach(key => {
+    const groupId = parentGroupId + "::s4::" + key;
+    const isOpen = browseState.openAccordions.has(groupId) || keys.length === 1;
+    const isMisc = key === MISC;
+    html += `<div class="accordion-item ${isOpen ? "open" : ""} ${isMisc ? "misc" : ""}" data-group="${escapeAttr(groupId)}">
+        <div class="accordion-header">
+          <span class="header-left"><i class="ti ti-folder-open" aria-hidden="true" style="margin-right:8px;"></i>${escapeHtml(key)}<span class="badge">${sub4Groups[key].length}</span></span>
+          <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+        </div>
+        <div class="accordion-body">${renderCardGrid(sub4Groups[key], groupId)}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function wireAccordionToggles(container) {
+  container.querySelectorAll(".accordion-item > .accordion-header").forEach(header => {
     header.addEventListener("click", () => {
       const item = header.parentElement;
       const groupId = item.dataset.group;
@@ -358,34 +413,31 @@ function renderAccordion() {
       item.classList.toggle("open");
     });
   });
-
-  main.querySelectorAll(".accordion-item[data-group^='s4::'] > .accordion-header, .nested-s4 .accordion-header").forEach(() => {});
 }
 
-function renderCardsOrSub4(items, parentGroupId) {
-  const hasAnySub4 = items.some(i => i.rawSub4);
-  if (!hasAnySub4) {
-    return renderCardGrid(items);
-  }
-  const sub4Groups = groupBy(items, i => bucket(i.rawSub4));
-  let html = "";
-  Object.keys(sub4Groups).sort(sortMiscLast).forEach(key => {
-    const groupId = parentGroupId + "::s4::" + key;
-    const isOpen = browseState.openAccordions.has(groupId) || Object.keys(sub4Groups).length === 1;
-    const isMisc = key === MISC;
-    html += `<div class="accordion-item ${isOpen ? "open" : ""} ${isMisc ? "misc" : ""}" data-group="${escapeAttr(groupId)}" style="margin-left:0;">
-        <div class="accordion-header">
-          <span class="header-left">${escapeHtml(key)}<span class="badge">${sub4Groups[key].length}</span></span>
-          <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
-        </div>
-        <div class="accordion-body">${renderCardGrid(sub4Groups[key])}</div>
-      </div>`;
+function wireLoadMoreButtons(container, rerenderFn) {
+  container.querySelectorAll(".load-more-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const key = btn.dataset.pagekey;
+      pageState.set(key, (pageState.get(key) || PAGE_SIZE) + PAGE_SIZE);
+      rerenderFn();
+    });
   });
-  return html;
 }
 
-function renderCardGrid(items) {
-  return `<div class="card-grid">${items.map(cardHtml).join("")}</div>`;
+/* ---- Progressive, sorted, type-clustered card grid ---- */
+function renderCardGrid(items, pageKey) {
+  const sorted = sortItems(items);
+  const shown = pageState.get(pageKey) || PAGE_SIZE;
+  const visible = sorted.slice(0, shown);
+  const remaining = sorted.length - visible.length;
+
+  let html = `<div class="card-grid">${visible.map(cardHtml).join("")}</div>`;
+  if (remaining > 0) {
+    html += `<button class="load-more-btn" data-pagekey="${escapeAttr(pageKey)}">Load more (${remaining} remaining)</button>`;
+  }
+  return html;
 }
 
 function cardHtml(i) {
@@ -394,7 +446,7 @@ function cardHtml(i) {
       <div class="card-icon" style="background:${icon.bg}; color:${icon.color}"><i class="ti ${icon.icon}" aria-hidden="true"></i></div>
       <div class="card-body">
         <div class="card-title">${escapeHtml(i.title)}</div>
-        <div class="card-type">${i.ext}</div>
+        <div class="card-type">${escapeHtml(i.ext)}</div>
         ${i.description ? `<div class="card-description">${escapeHtml(i.description)}</div>` : ""}
       </div>
     </a>`;
@@ -410,12 +462,6 @@ function groupBy(arr, fn) {
   return out;
 }
 
-function sortMiscLast(a, b) {
-  if (a === MISC) return 1;
-  if (b === MISC) return -1;
-  return a.localeCompare(b);
-}
-
 /* ---- Search view (flat, all sections) ---- */
 function populateFilterOptions() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
@@ -425,7 +471,7 @@ function populateFilterOptions() {
   sections.forEach(s => secSel.insertAdjacentHTML("beforeend", `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`));
 
   const typeSel = document.getElementById("filterType");
-  types.forEach(t => typeSel.insertAdjacentHTML("beforeend", `<option value="${t}">${t.toUpperCase()}</option>`));
+  types.forEach(t => typeSel.insertAdjacentHTML("beforeend", `<option value="${escapeAttr(t)}">${escapeHtml(t.toUpperCase())}</option>`));
 }
 
 function currentFilters() {
@@ -459,7 +505,7 @@ function renderSearch() {
 
   const container = document.getElementById("searchResults");
   if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">
+    container.innerHTML = `<div class="empty-state dashed">
         <div class="big">No matches</div>
         Try a different keyword or clear your filters.
       </div>`;
@@ -476,12 +522,14 @@ function renderSearch() {
 
   let html = "";
   Object.keys(groups).sort().forEach(groupName => {
+    const pageKey = "search::" + groupName;
     html += `<div class="subsection-group">
         <div class="subsection-title">${escapeHtml(groupName)}</div>
-        <div class="card-grid">${groups[groupName].map(cardHtml).join("")}</div>
+        ${renderCardGrid(groups[groupName], pageKey)}
       </div>`;
   });
   container.innerHTML = html;
+  wireLoadMoreButtons(container, renderSearch);
 }
 
 function escapeHtml(s) {
