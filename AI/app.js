@@ -228,9 +228,11 @@ function buildTabs() {
   const tabsEl = document.getElementById("sectionTabs");
   tabsEl.innerHTML = sections.map(s =>
     `<div class="tab" data-section="${escapeAttr(s)}"><i class="ti ${sectionIcon(s)}" aria-hidden="true"></i>${escapeHtml(s)}</div>`
-  ).join("") + `<div class="tab search-tab active" data-section="__search__"><i class="ti ti-search" aria-hidden="true"></i>Search</div>`;
+  ).join("")
+    + `<a class="tab evoq-link" href="https://home.myridiusevoq.com/" target="_blank" rel="noopener noreferrer"><i class="ti ti-external-link" aria-hidden="true"></i>Evoq Portal</a>`
+    + `<div class="tab search-tab active" data-section="__search__"><i class="ti ti-search" aria-hidden="true"></i>Search</div>`;
 
-  tabsEl.querySelectorAll(".tab").forEach(el => {
+  tabsEl.querySelectorAll(".tab:not(.evoq-link)").forEach(el => {
     el.addEventListener("click", () => {
       const sec = el.dataset.section;
       tabsEl.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
