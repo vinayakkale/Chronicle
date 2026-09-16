@@ -585,8 +585,14 @@ function renderHomeStatic() {
   const data = window.HOME_DATA || {};
 
   const header = data.header || {};
+  const paragraphs = (header.text || "")
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${escapeHtml(p)}</p>`)
+    .join("");
   document.getElementById("homeHeader").innerHTML =
-    `<h1>${escapeHtml(header.title || "")}</h1><p>${escapeHtml(header.text || "")}</p>`;
+    `<h1>${escapeHtml(header.title || "")}</h1>${paragraphs}`;
 
   const contactsEl = document.getElementById("homeContacts");
   contactsEl.innerHTML = (data.keyContacts || []).map(personRowHtml).join("");
@@ -603,18 +609,34 @@ function renderHomeStatic() {
 }
 
 function personRowHtml(c) {
-  const photo = c.image
-    ? `<img class="contact-photo" src="${escapeAttr(c.image)}" alt="${escapeAttr(c.name)}">`
+  const photoUrl = c.image || sharePointPhotoUrl(c.email);
+  const photo = photoUrl
+    ? `<img class="contact-photo" src="${escapeAttr(photoUrl)}" alt="${escapeAttr(c.name)}" onerror="handlePhotoError(this)">`
     : `<div class="contact-photo"></div>`;
-  const body = `${photo}<div><div class="contact-name">${escapeHtml(c.name || "")}</div><div class="contact-role">${escapeHtml(c.role || "")}</div></div>`;
-  return c.url
-    ? `<a class="contact-row" href="${escapeAttr(c.url)}" target="_blank" rel="noopener">${body}</a>`
-    : `<div class="contact-row">${body}</div>`;
+  const nameHtml = c.email
+    ? `<a class="contact-name" href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.name || "")}</a>`
+    : `<div class="contact-name">${escapeHtml(c.name || "")}</div>`;
+  return `<div class="contact-row">${photo}<div>${nameHtml}<div class="contact-role">${escapeHtml(c.role || "")}</div></div></div>`;
+}
+
+/* Every employee already has a working SharePoint profile photo at this
+   endpoint (confirmed via the Girish Pai example) — reuse it automatically
+   instead of requiring a manually-sourced image URL per person. */
+function sharePointPhotoUrl(email) {
+  if (!email) return "";
+  return `https://rcgmail.sharepoint.com/_layouts/15/userphoto.aspx?size=L&accountname=${encodeURIComponent(email)}`;
+}
+
+/* Swaps a broken/missing profile photo for the standard colored placeholder box */
+function handlePhotoError(img) {
+  const placeholder = document.createElement("div");
+  placeholder.className = "contact-photo";
+  img.replaceWith(placeholder);
 }
 
 function trainingRowHtml(t) {
   const photo = t.image
-    ? `<img class="training-photo" src="${escapeAttr(t.image)}" alt="${escapeAttr(t.name)}">`
+    ? `<img class="training-photo" src="${escapeAttr(t.image)}" alt="${escapeAttr(t.name)}" onerror="handleTrainingPhotoError(this)">`
     : `<div class="training-photo"></div>`;
   const body = `${photo}<div class="training-name">${escapeHtml(t.name || "")}</div>`;
   return t.url
@@ -622,23 +644,52 @@ function trainingRowHtml(t) {
     : `<div class="training-row">${body}</div>`;
 }
 
+function handleTrainingPhotoError(img) {
+  const placeholder = document.createElement("div");
+  placeholder.className = "training-photo";
+  img.replaceWith(placeholder);
+}
+
 function renderWorldClockSkeleton(cities) {
   const el = document.getElementById("homeWorldClock");
   el.innerHTML = cities.map((c, idx) =>
     `<div class="clock-item">
-        <div class="clock-city">${escapeHtml(c.city)}</div>
-        <div class="clock-time" id="clockTime${idx}" data-tz="${escapeAttr(c.timezone)}">--:--</div>
+        <svg class="clock-face" id="clockFace${idx}" data-tz="${escapeAttr(c.timezone)}" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" fill="var(--paper-2)" stroke="var(--rule)" stroke-width="1.5"/>
+          <line id="clockHour${idx}" x1="20" y1="20" x2="20" y2="11" stroke="var(--petrol-ink)" stroke-width="2.5" stroke-linecap="round"/>
+          <line id="clockMinute${idx}" x1="20" y1="20" x2="20" y2="7" stroke="var(--signal-deep)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="20" cy="20" r="1.6" fill="var(--petrol-ink)"/>
+        </svg>
+        <div>
+          <div class="clock-city">${escapeHtml(c.city)}</div>
+          <div class="clock-time" id="clockTime${idx}" data-tz="${escapeAttr(c.timezone)}">--:--</div>
+        </div>
       </div>`
   ).join("");
 }
 
 function updateWorldClockTimes() {
-  document.querySelectorAll(".clock-time").forEach(el => {
+  document.querySelectorAll(".clock-time").forEach((el, idx) => {
     const tz = el.dataset.tz;
     try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz
+      }).formatToParts(new Date());
+      const hour24 = parseInt(parts.find(p => p.type === "hour").value, 10);
+      const minute = parseInt(parts.find(p => p.type === "minute").value, 10);
+
       el.textContent = new Intl.DateTimeFormat("en-US", {
         hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz
       }).format(new Date());
+
+      const hourHand = document.getElementById(`clockHour${idx}`);
+      const minuteHand = document.getElementById(`clockMinute${idx}`);
+      if (hourHand && minuteHand) {
+        const hourAngle = ((hour24 % 12) + minute / 60) / 12 * 360;
+        const minuteAngle = (minute / 60) * 360;
+        hourHand.setAttribute("transform", `rotate(${hourAngle} 20 20)`);
+        minuteHand.setAttribute("transform", `rotate(${minuteAngle} 20 20)`);
+      }
     } catch (e) {
       el.textContent = "—";
     }
@@ -651,22 +702,15 @@ function renderRecentLinks() {
   const recent = [...allItems]
     .filter(i => i.modified)
     .sort((a, b) => b.modified.localeCompare(a.modified))
-    .slice(0, 8);
+    .slice(0, 9);
 
   if (recent.length === 0) {
     el.innerHTML = `<div class="panel-empty">No items yet.</div>`;
     return;
   }
 
-  el.innerHTML = recent.map(i => {
-    const icon = ICON_MAP[i.ext] || ICON_DEFAULT;
-    return `<div class="recent-card card" tabindex="0" role="link" aria-label="${escapeAttr(i.title)}" data-url="${escapeAttr(i.url)}">
-        <div class="card-icon" style="background:${icon.bg}; color:${icon.color}"><i class="ti ${icon.icon}" aria-hidden="true"></i></div>
-        <div class="recent-card-title">${escapeHtml(i.title)}</div>
-      </div>`;
-  }).join("");
-
-  wireCardInteractions(el); // reuses the same click/keyboard-open + XSS-safe rendering as the main card grid
+  el.innerHTML = recent.map(cardHtml).join("");
+  wireCardInteractions(el);
 }
 function populateFilterOptions() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
