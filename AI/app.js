@@ -67,6 +67,8 @@ function sectionIcon(name) {
 let allItems = [];
 const pageState = new Map(); // pagination cursor per grid, keyed by a stable path string
 let hasLoadedOnce = false;
+let currentView = "home"; // "home" | "search" | "section"
+let worldClockStarted = false;
 
 /* State for the browse (drill-down) view */
 const browseState = {
@@ -182,14 +184,18 @@ async function loadItems() {
 
     if (!hasLoadedOnce) {
       hasLoadedOnce = true;
-      showSearchView();
-    } else if (browseState.section && allItems.some(i => i.section === browseState.section)) {
+      currentView = "home";
+      showHomeView();
+    } else if (currentView === "home") {
+      showHomeView();
+    } else if (currentView === "section" && browseState.section && allItems.some(i => i.section === browseState.section)) {
       const tabEl = document.querySelector(`#sectionTabs .tab[data-section="${CSS.escape(browseState.section)}"]`);
       document.querySelectorAll("#sectionTabs .tab").forEach(t => t.classList.remove("active"));
       if (tabEl) tabEl.classList.add("active");
       showBrowseView();
       selectSection(browseState.section);
     } else {
+      currentView = "search";
       const searchTab = document.querySelector('#sectionTabs .tab[data-section="__search__"]');
       document.querySelectorAll("#sectionTabs .tab").forEach(t => t.classList.remove("active"));
       if (searchTab) searchTab.classList.add("active");
@@ -226,29 +232,50 @@ function sortItems(items) {
 function buildTabs() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
   const tabsEl = document.getElementById("sectionTabs");
-  tabsEl.innerHTML = sections.map(s =>
-    `<div class="tab" data-section="${escapeAttr(s)}"><i class="ti ${sectionIcon(s)}" aria-hidden="true"></i>${escapeHtml(s)}</div>`
-  ).join("")
+  tabsEl.innerHTML = `<div class="tab home-tab" data-section="__home__"><i class="ti ti-home" aria-hidden="true"></i>Home</div>`
+    + sections.map(s =>
+        `<div class="tab" data-section="${escapeAttr(s)}"><i class="ti ${sectionIcon(s)}" aria-hidden="true"></i>${escapeHtml(s)}</div>`
+      ).join("")
     + `<a class="tab evoq-link" href="https://home.myridiusevoq.com/" target="_blank" rel="noopener noreferrer"><i class="ti ti-external-link" aria-hidden="true"></i>Evoq Portal</a>`
-    + `<div class="tab search-tab active" data-section="__search__"><i class="ti ti-search" aria-hidden="true"></i>Search</div>`;
+    + `<div class="tab search-tab ${currentView === "search" ? "active" : ""}" data-section="__search__"><i class="ti ti-search" aria-hidden="true"></i>Search</div>`;
 
   tabsEl.querySelectorAll(".tab:not(.evoq-link)").forEach(el => {
     el.addEventListener("click", () => {
       const sec = el.dataset.section;
       tabsEl.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
       el.classList.add("active");
-      if (sec === "__search__") {
+      if (sec === "__home__") {
+        currentView = "home";
+        showHomeView();
+      } else if (sec === "__search__") {
+        currentView = "search";
         showSearchView();
       } else {
+        currentView = "section";
         showBrowseView();
         selectSection(sec);
       }
     });
   });
+
+  if (currentView === "home") {
+    const homeTab = tabsEl.querySelector('.tab[data-section="__home__"]');
+    if (homeTab) { tabsEl.querySelectorAll(".tab").forEach(t => t.classList.remove("active")); homeTab.classList.add("active"); }
+  }
+}
+
+function showHomeView() {
+  document.getElementById("browseView").style.display = "none";
+  document.getElementById("searchView").style.display = "none";
+  document.getElementById("statsStrip").style.display = "none";
+  document.getElementById("homeView").style.display = "flex";
+  renderHomeStatic();
+  renderRecentLinks();
 }
 
 function showSearchView() {
   document.getElementById("browseView").style.display = "none";
+  document.getElementById("homeView").style.display = "none";
   document.getElementById("statsStrip").style.display = "none";
   document.getElementById("searchView").style.display = "block";
   renderSearch();
@@ -256,6 +283,7 @@ function showSearchView() {
 
 function showBrowseView() {
   document.getElementById("searchView").style.display = "none";
+  document.getElementById("homeView").style.display = "none";
   document.getElementById("browseView").style.display = "flex";
 }
 
@@ -552,7 +580,94 @@ function groupBy(arr, fn) {
   return out;
 }
 
-/* ---- Search view (flat, all sections) ---- */
+/* ---- Home view: static content (contacts, trainings, header, clock) ---- */
+function renderHomeStatic() {
+  const data = window.HOME_DATA || {};
+
+  const header = data.header || {};
+  document.getElementById("homeHeader").innerHTML =
+    `<h1>${escapeHtml(header.title || "")}</h1><p>${escapeHtml(header.text || "")}</p>`;
+
+  const contactsEl = document.getElementById("homeContacts");
+  contactsEl.innerHTML = (data.keyContacts || []).map(personRowHtml).join("");
+
+  const trainingsEl = document.getElementById("homeTrainings");
+  trainingsEl.innerHTML = (data.trainings || []).map(trainingRowHtml).join("");
+
+  renderWorldClockSkeleton(data.worldClock || []);
+  updateWorldClockTimes();
+  if (!worldClockStarted) {
+    worldClockStarted = true;
+    setInterval(updateWorldClockTimes, 30000);
+  }
+}
+
+function personRowHtml(c) {
+  const photo = c.image
+    ? `<img class="contact-photo" src="${escapeAttr(c.image)}" alt="${escapeAttr(c.name)}">`
+    : `<div class="contact-photo"></div>`;
+  const body = `${photo}<div><div class="contact-name">${escapeHtml(c.name || "")}</div><div class="contact-role">${escapeHtml(c.role || "")}</div></div>`;
+  return c.url
+    ? `<a class="contact-row" href="${escapeAttr(c.url)}" target="_blank" rel="noopener">${body}</a>`
+    : `<div class="contact-row">${body}</div>`;
+}
+
+function trainingRowHtml(t) {
+  const photo = t.image
+    ? `<img class="training-photo" src="${escapeAttr(t.image)}" alt="${escapeAttr(t.name)}">`
+    : `<div class="training-photo"></div>`;
+  const body = `${photo}<div class="training-name">${escapeHtml(t.name || "")}</div>`;
+  return t.url
+    ? `<a class="training-row" href="${escapeAttr(t.url)}" target="_blank" rel="noopener">${body}</a>`
+    : `<div class="training-row">${body}</div>`;
+}
+
+function renderWorldClockSkeleton(cities) {
+  const el = document.getElementById("homeWorldClock");
+  el.innerHTML = cities.map((c, idx) =>
+    `<div class="clock-item">
+        <div class="clock-city">${escapeHtml(c.city)}</div>
+        <div class="clock-time" id="clockTime${idx}" data-tz="${escapeAttr(c.timezone)}">--:--</div>
+      </div>`
+  ).join("");
+}
+
+function updateWorldClockTimes() {
+  document.querySelectorAll(".clock-time").forEach(el => {
+    const tz = el.dataset.tz;
+    try {
+      el.textContent = new Intl.DateTimeFormat("en-US", {
+        hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz
+      }).format(new Date());
+    } catch (e) {
+      el.textContent = "—";
+    }
+  });
+}
+
+/* ---- Home view: Recent Links (dynamic, from actual list data) ---- */
+function renderRecentLinks() {
+  const el = document.getElementById("homeRecentLinks");
+  const recent = [...allItems]
+    .filter(i => i.modified)
+    .sort((a, b) => b.modified.localeCompare(a.modified))
+    .slice(0, 8);
+
+  if (recent.length === 0) {
+    el.innerHTML = `<div class="panel-empty">No items yet.</div>`;
+    return;
+  }
+
+  el.innerHTML = recent.map(i => {
+    const icon = ICON_MAP[i.ext] || ICON_DEFAULT;
+    return `<div class="recent-card card" tabindex="0" role="link" aria-label="${escapeAttr(i.title)}" data-url="${escapeAttr(i.url)}">
+        <div class="card-icon" style="background:${icon.bg}; color:${icon.color}"><i class="ti ${icon.icon}" aria-hidden="true"></i></div>
+        <div class="recent-card-title">${escapeHtml(i.title)}</div>
+      </div>`;
+  }).join("");
+
+  wireCardInteractions(el); // reuses the same click/keyboard-open + XSS-safe rendering as the main card grid
+}
 function populateFilterOptions() {
   const sections = [...new Set(allItems.map(i => i.section))].sort();
   const types = [...new Set(allItems.map(i => i.ext))].sort();

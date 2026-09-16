@@ -42,6 +42,33 @@
   <div class="status-banner" id="statusBanner"></div>
   <div class="loading-banner" id="loadingBanner" style="display:none;">Loading catalog…</div>
 
+  <!-- Home view: key contacts / header + recent links + world clock / trainings -->
+  <div class="home-view" id="homeView" style="display:none;">
+    <div class="home-col home-col-side">
+      <h2 class="home-col-title">Key Contacts</h2>
+      <div id="homeContacts"></div>
+    </div>
+
+    <div class="home-col home-col-main">
+      <div class="home-box home-header-box" id="homeHeader"></div>
+
+      <div class="home-box home-recent-box">
+        <h2 class="home-box-title">Recent Links</h2>
+        <div class="home-recent-grid" id="homeRecentLinks"></div>
+      </div>
+
+      <div class="home-box home-clock-box">
+        <h2 class="home-box-title home-box-title-center">World Clock</h2>
+        <div class="home-clock-row" id="homeWorldClock"></div>
+      </div>
+    </div>
+
+    <div class="home-col home-col-side">
+      <h2 class="home-col-title">Partnership Enablement Trainings</h2>
+      <div id="homeTrainings"></div>
+    </div>
+  </div>
+
   <!-- Browse view: left panel / accordion / right panel -->
   <div class="browse-view" id="browseView" style="display:none;">
     <nav class="panel panel-left" id="panelSub1"></nav>
@@ -93,6 +120,7 @@
 
 </div>
 
+<script src="home-data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
