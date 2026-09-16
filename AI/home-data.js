@@ -44,14 +44,14 @@ Your one place for battlecards, proposals, trainings, and every sales reference 
   ],
 
   trainings: [
-    { name: "AWS Migration Pre-Sales Learning Plan - Solution Managers (Partner)", image: "", url: "https://explore.skillbuilder.aws/learn/learning-plans/101/Pre-sales-Engineer-Learning-Plan-partner" },
-    { name: "Datadog Partner Network Program", image: "", url: "https://www.datadoghq.com/partner/network/" },
-    { name: "AWS Cloud Practitioner Essentials", image: "", url: "https://explore.skillbuilder.aws/learn/courses/134/aws-cloud-practitioner-essentials/lessons/136404/aws-cloud-practitioner-essentials" },
-    { name: "Snowflake | SPN-SSP | Snowflake University: On-Demand", image: "", url: "https://learn.snowflake.com/courses/course-v1:snowflake+SPN-SSP+B/course/" },
-    { name: "Gen AI & LLM on Databricks PreSales Partner Badge", image: "", url: "https://partner-academy.databricks.com/learn/courses/2494/gen-ai-llm-on-databricks-presales-partner-badge/lessons" },
-    { name: "AWS Skill Builder", image: "", url: "https://explore.skillbuilder.aws/learn/courses/1096/aws-partner-accreditation-technical/lessons/148082/aws-partner-accreditation-technical" },
-    { name: "Databricks Sales Ready - The Keys to 10X Multiplier of Partner Services Revenue with Databricks - FY25", image: "", url: "https://partner-academy.databricks.com/learn/courses/2436/on-demand-sales-ready-the-keys-to-10x-multiplier-of-partner-services-revenue-with-databricks-fy25/lessons/19045/introduction-resource-overview" },
-    { name: "Microsoft Certified: Azure Fundamentals - Certifications", image: "", url: "https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/?practice-assessment-type=certification&WT.mc_id=certposter_poster-wwl" }
+    { name: "AWS Migration Pre-Sales Learning Plan - Solution Managers (Partner)", image: "https://cdn.simpleicons.org/amazonaws", url: "https://explore.skillbuilder.aws/learn/learning-plans/101/Pre-sales-Engineer-Learning-Plan-partner" },
+    { name: "Datadog Partner Network Program", image: "https://cdn.simpleicons.org/datadog", url: "https://www.datadoghq.com/partner/network/" },
+    { name: "AWS Cloud Practitioner Essentials", image: "https://cdn.simpleicons.org/amazonaws", url: "https://explore.skillbuilder.aws/learn/courses/134/aws-cloud-practitioner-essentials/lessons/136404/aws-cloud-practitioner-essentials" },
+    { name: "Snowflake | SPN-SSP | Snowflake University: On-Demand", image: "https://cdn.simpleicons.org/snowflake", url: "https://learn.snowflake.com/courses/course-v1:snowflake+SPN-SSP+B/course/" },
+    { name: "Gen AI & LLM on Databricks PreSales Partner Badge", image: "https://cdn.simpleicons.org/databricks", url: "https://partner-academy.databricks.com/learn/courses/2494/gen-ai-llm-on-databricks-presales-partner-badge/lessons" },
+    { name: "AWS Skill Builder", image: "https://cdn.simpleicons.org/amazonaws", url: "https://explore.skillbuilder.aws/learn/courses/1096/aws-partner-accreditation-technical/lessons/148082/aws-partner-accreditation-technical" },
+    { name: "Databricks Sales Ready - The Keys to 10X Multiplier of Partner Services Revenue with Databricks - FY25", image: "https://cdn.simpleicons.org/databricks", url: "https://partner-academy.databricks.com/learn/courses/2436/on-demand-sales-ready-the-keys-to-10x-multiplier-of-partner-services-revenue-with-databricks-fy25/lessons/19045/introduction-resource-overview" },
+    { name: "Microsoft Certified: Azure Fundamentals - Certifications", image: "https://cdn.simpleicons.org/microsoftazure", url: "https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/?practice-assessment-type=certification&WT.mc_id=certposter_poster-wwl" }
   ],
 
   worldClock: [
