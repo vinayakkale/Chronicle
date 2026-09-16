@@ -635,9 +635,14 @@ function handlePhotoError(img) {
 }
 
 function trainingRowHtml(t) {
-  const photo = t.image
-    ? `<img class="training-photo" src="${escapeAttr(t.image)}" alt="${escapeAttr(t.name)}" onerror="handleTrainingPhotoError(this)">`
-    : `<div class="training-photo"></div>`;
+  let photo;
+  if (t.image) {
+    photo = `<img class="training-photo" src="${escapeAttr(t.image)}" alt="${escapeAttr(t.name)}" onerror="handleTrainingPhotoError(this)">`;
+  } else if (t.badgeText) {
+    photo = `<div class="training-photo training-photo-badge">${escapeHtml(t.badgeText)}</div>`;
+  } else {
+    photo = `<div class="training-photo"></div>`;
+  }
   const body = `${photo}<div class="training-name">${escapeHtml(t.name || "")}</div>`;
   return t.url
     ? `<a class="training-row" href="${escapeAttr(t.url)}" target="_blank" rel="noopener">${body}</a>`
@@ -702,7 +707,7 @@ function renderRecentLinks() {
   const recent = [...allItems]
     .filter(i => i.modified)
     .sort((a, b) => b.modified.localeCompare(a.modified))
-    .slice(0, 9);
+    .slice(0, 6);
 
   if (recent.length === 0) {
     el.innerHTML = `<div class="panel-empty">No items yet.</div>`;
