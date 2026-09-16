@@ -11,9 +11,9 @@ window.HOME_DATA = {
 
   header: {
     title: "Welcome to Presales Navigator",
-    text: "Your one-stop shop for everything you need to succeed in the field! This intranet site is designed to be your definitive resource, providing you with the knowledge, tools, and connections necessary to close deals and drive revenue. Here, you'll find comprehensive information on our service offerings, including detailed descriptions, key differentiators, and successful case studies. This hub empowers you to confidently articulate our value proposition, navigate complex sales cycles, and deliver winning solutions to our clients. <br>
+    text: `Your one-stop shop for everything you need to succeed in the field! This intranet site is designed to be your definitive resource, providing you with the knowledge, tools, and connections necessary to close deals and drive revenue. Here, you'll find comprehensive information on our service offerings, including detailed descriptions, key differentiators, and successful case studies. This hub empowers you to confidently articulate our value proposition, navigate complex sales cycles, and deliver winning solutions to our clients. <br> <br>
 
-Make this hub your first stop for all your sales-related needs. Regularly exploring its content will keep you up-to-date on our offerings, refine your sales skills, and maximize your effectiveness in the field. By centralizing essential information and resources, this site streamlines your workflow, allowing you to focus on what matters most: building relationships, closing deals, and achieving your sales targets. We encourage you to actively engage with the hub, provide feedback, and contribute to its ongoing improvement, making it an invaluable tool for the entire sales team.Your one place for battlecards, proposals, trainings, and every sales reference asset across Myridius. Browse by section on the left, or search everything above."
+Make this hub your first stop for all your sales-related needs. Regularly exploring its content will keep you up-to-date on our offerings, refine your sales skills, and maximize your effectiveness in the field. By centralizing essential information and resources, this site streamlines your workflow, allowing you to focus on what matters most: building relationships, closing deals, and achieving your sales targets. We encourage you to actively engage with the hub, provide feedback, and contribute to its ongoing improvement, making it an invaluable tool for the entire sales team.Your one place for battlecards, proposals, trainings, and every sales reference asset across Myridius. Browse by section on the left, or search everything above.`
   },
 
   keyContacts: [
@@ -25,7 +25,7 @@ Make this hub your first stop for all your sales-related needs. Regularly explor
     { name: "Tushar Malhotra", role: "Associate Director - Solutions & Presales", image: "", url: "https://outlook.office.com/fc89ba1a-443e-496e-93b1-aaad1d57a853" },
     { name: "Amit Joshi", role: "Associate Director - Solutions & Presales", image: "", url: "https://outlook.office.com/984ae44e-8625-4c16-9f81-625c6d6c84b9" },
     { name: "Ajay Vijay Kamble", role: "Manager - Solutions & Presales", image: "", url: "https://outlook.office.com/759f8326-381e-468d-84c3-05e10b1daa3e" },
-    { name: "Shivam Talkhande", role: "Lead - Solutions & Presales", image: "", url: "https://outlook.office.com/8c7c2e8e-3a96-4c17-869d-e7ecd4f08d46" }
+    { name: "Shivam Talkhande", role: "Lead - Solutions & Presales", image: "", url: "https://outlook.office.com/8c7c2e8e-3a96-4c17-869d-e7ecd4f08d46" },
     { name: "Ayushi Gupta", role: "Lead - Business Analyst", image: "", url: "" }
   ],
 
